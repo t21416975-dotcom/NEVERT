@@ -1,0 +1,159 @@
+---
+import Admin from '../../../layouts/Admin.astro';
+import { listOrders, orderCounts } from '../../../lib/admin-data';
+import { ORDER_STATUSES, formatPrice, type OrderStatus } from '../../../lib/types';
+import { orderMessage, waLink } from '../../../lib/format';
+import {
+  formatDateTime,
+  orderStatusLabel,
+  ordersLabel,
+  piecesLabel,
+} from '../../../lib/labels';
+
+const filterParam = Astro.url.searchParams.get('status');
+const filter = ORDER_STATUSES.includes(filterParam as OrderStatus)
+  ? (filterParam as OrderStatus)
+  : undefined;
+
+const [orders, counts] = await Promise.all([listOrders(filter), orderCounts()]);
+const admin = Astro.locals.admin;
+const saved = Astro.url.searchParams.get('saved');
+const error = Astro.url.searchParams.get('error');
+
+const countFor = (status: OrderStatus) =>
+  status === 'new'
+    ? counts.new
+    : status === 'delivered'
+      ? counts.delivered
+      : status === 'cancelled'
+        ? counts.cancelled
+        : status === 'contacted' || status === 'confirmed'
+          ? counts.open
+          : 0;
+---
+
+<Admin title="الطلبات — لوحة تحكم NEVERT" email={admin?.email} newOrders={counts.new}>
+  <div class="flex flex-wrap items-baseline justify-between gap-4">
+    <h1 class="text-3xl text-espresso">الطلبات</h1>
+    <p class="text-sm text-stone">{ordersLabel(orders.length)}</p>
+  </div>
+
+  {
+    saved && (
+      <p class="mt-6 border border-espresso/15 bg-linen/60 px-4 py-3 text-sm text-espresso">
+        تم تحديث الطلب.
+      </p>
+    )
+  }
+  {
+    error && (
+      <p
+        role="alert"
+        class="mt-6 border border-cognac/40 bg-cognac/5 px-4 py-3 text-sm text-espresso"
+      >
+        {error === 'status'
+          ? 'الحالة المطلوبة غير معروفة، اختر واحدة من القائمة.'
+          : 'تعذّر حفظ التعديل، حاول مرة أخرى.'}
+      </p>
+    )
+  }
+
+  <nav class="mt-8 flex flex-wrap gap-x-6 gap-y-3 text-sm" aria-label="تصفية حسب الحالة">
+    <a
+      href="/admin/orders"
+      class:list={['hover:text-cognac', !filter ? 'text-cognac' : 'text-stone']}
+    >
+      الكل
+    </a>
+    {
+      ORDER_STATUSES.map((s) => (
+        <a
+          href={`/admin/orders?status=${s}`}
+          class:list={['hover:text-cognac', filter === s ? 'text-cognac' : 'text-stone']}
+        >
+          {orderStatusLabel[s]}
+          {countFor(s) > 0 && (
+            <span class="latin mr-1 text-xs">({countFor(s)})</span>
+          )}
+        </a>
+      ))
+    }
+  </nav>
+
+  {
+    orders.length === 0 ? (
+      <p class="mt-10 border-t border-espresso/10 pt-6 text-sm text-stone">
+        لا توجد طلبات هنا بعد.
+      </p>
+    ) : (
+      <ul class="mt-6 divide-y divide-espresso/10 border-y border-espresso/10">
+        {orders.map((o) => (
+          <li class="py-5">
+            <div class="flex flex-wrap items-start justify-between gap-4">
+              <div class="min-w-0">
+                <a
+                  href={`/admin/orders/${o.id}`}
+                  class="text-lg text-espresso hover:text-cognac"
+                >
+                  #{o.id} — {o.customer_name}
+                </a>
+                <p class="mt-1 text-sm text-stone">
+                  <span class="latin">{o.whatsapp_number}</span>
+                  {o.city ? ` · ${o.city}` : ''} · {formatDateTime(o.created_at)}
+                </p>
+                <p class="mt-2 text-sm text-stone">
+                  {o.items.map((i) => `${i.name} (${i.color}، ${i.size}) × ${i.qty}`).join(' · ')}
+                </p>
+                <p class="mt-2 text-sm text-cognac">
+                  الحالة: {orderStatusLabel[o.status] ?? o.status} ·{' '}
+                  {piecesLabel(o.items.length)}
+                </p>
+              </div>
+
+              <div class="flex flex-col items-end gap-3">
+                <p class="latin text-xl tabular-nums text-espresso">
+                  {formatPrice(Number(o.total))}
+                </p>
+                <a
+                  href={waLink(o.whatsapp_number, orderMessage(o))}
+                  target="_blank"
+                  rel="noopener"
+                  class="border border-espresso/20 px-4 py-2 text-sm text-espresso transition-colors hover:border-cognac hover:text-cognac"
+                >
+                  واتساب
+                </a>
+              </div>
+            </div>
+
+            <form
+              method="post"
+              action="/api/admin/orders/status"
+              class="mt-4 flex flex-wrap items-center gap-3"
+            >
+              <input type="hidden" name="id" value={o.id} />
+              <input type="hidden" name="back" value="/admin/orders" />
+              <label class="text-sm text-stone" for={`status-${o.id}`}>الحالة</label>
+              <select
+                id={`status-${o.id}`}
+                name="status"
+                class="border border-espresso/20 bg-porcelain px-3 py-2 text-sm outline-none focus:border-cognac"
+              >
+                {ORDER_STATUSES.map((s) => (
+                  <option value={s} selected={s === o.status}>
+                    {orderStatusLabel[s]}
+                  </option>
+                ))}
+              </select>
+              <button
+                type="submit"
+                class="bg-espresso px-5 py-2 text-sm text-porcelain transition-colors hover:bg-cognac"
+              >
+                حفظ الحالة
+              </button>
+            </form>
+          </li>
+        ))}
+      </ul>
+    )
+  }
+</Admin>

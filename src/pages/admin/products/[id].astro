@@ -1,0 +1,209 @@
+---
+import Admin from '../../../layouts/Admin.astro';
+import { listProducts } from '../../../lib/store';
+import { listCollectionsAdmin } from '../../../lib/admin-data';
+import { variantsToLines } from '../../../lib/format';
+
+const id = Astro.params.id ?? '';
+const [products, dbCollections] = await Promise.all([
+  listProducts(),
+  listCollectionsAdmin(),
+]);
+const product = products.find((p) => p.id === id);
+const admin = Astro.locals.admin;
+const saved = Astro.url.searchParams.get('saved');
+const error = Astro.url.searchParams.get('error');
+
+if (!product) {
+  return Astro.redirect('/admin/products');
+}
+
+const errorText =
+  error === 'slug'
+    ? 'هذا العنوان مستخدم بالفعل لقطعة أخرى.'
+    : error === 'name'
+      ? 'الاسم مطلوب ولا يمكن تركه فارغًا.'
+      : error
+        ? 'تعذّر الحفظ، حاول مرة أخرى.'
+        : '';
+---
+
+<Admin title={`${product.name} — لوحة تحكم NEVERT`} email={admin?.email}>
+  <a
+    href="/admin/products"
+    class="text-sm text-stone underline decoration-stone/30 underline-offset-4 hover:text-cognac"
+  >
+    رجوع إلى المنتجات
+  </a>
+
+  <h1 class="mt-6 text-3xl text-espresso">{product.name}</h1>
+  <p class="mt-2 text-sm text-stone">
+    صفحتها على المتجر: <span class="latin">/products/{product.slug}</span>
+  </p>
+
+  {
+    saved && (
+      <p class="mt-6 border border-espresso/15 bg-linen/60 px-4 py-3 text-sm text-espresso">
+        تم الحفظ.
+      </p>
+    )
+  }
+  {
+    errorText && (
+      <p
+        role="alert"
+        class="mt-6 border border-cognac/40 bg-cognac/5 px-4 py-3 text-sm text-espresso"
+      >
+        {errorText}
+      </p>
+    )
+  }
+
+  <form
+    method="post"
+    action="/api/admin/products/save"
+    class="mt-10 grid gap-5 sm:grid-cols-2"
+  >
+    <input type="hidden" name="id" value={product.id} />
+
+    <div class="sm:col-span-2">
+      <label for="name" class="block text-sm text-espresso">اسم القطعة</label>
+      <input
+        id="name"
+        name="name"
+        required
+        value={product.name}
+        class="mt-2 w-full border border-espresso/20 bg-porcelain px-4 py-3 text-sm outline-none focus:border-cognac"
+      />
+    </div>
+
+    <div>
+      <label for="slug" class="block text-sm text-espresso">رابط الصفحة</label>
+      <input
+        id="slug"
+        name="slug"
+        dir="ltr"
+        value={product.slug}
+        class="mt-2 w-full border border-espresso/20 bg-porcelain px-4 py-3 text-sm outline-none focus:border-cognac"
+      />
+    </div>
+
+    <div>
+      <label for="price" class="block text-sm text-espresso">السعر (دولار)</label>
+      <input
+        id="price"
+        name="price"
+        type="number"
+        min="0"
+        step="1"
+        required
+        dir="ltr"
+        value={product.price}
+        class="mt-2 w-full border border-espresso/20 bg-porcelain px-4 py-3 text-sm outline-none focus:border-cognac"
+      />
+    </div>
+
+    <div>
+      <label for="collectionId" class="block text-sm text-espresso">المجموعة</label>
+      <select
+        id="collectionId"
+        name="collectionId"
+        class="mt-2 w-full border border-espresso/20 bg-porcelain px-4 py-3 text-sm outline-none focus:border-cognac"
+      >
+        <option value="">بدون مجموعة</option>
+        {
+          dbCollections.map((c) => (
+            <option value={c.id} selected={c.slug === product.collection}>
+              {c.name}
+            </option>
+          ))
+        }
+      </select>
+    </div>
+
+    <div class="flex items-center gap-3 sm:pb-3">
+      <input
+        id="featured"
+        name="featured"
+        type="checkbox"
+        value="true"
+        checked={product.featured}
+        class="h-4 w-4"
+      />
+      <label for="featured" class="text-sm text-espresso">
+        إظهارها في الصفحة الرئيسية
+      </label>
+    </div>
+    <div class="sm:col-span-2">
+      <label for="description" class="block text-sm text-espresso">الوصف</label>
+      <textarea
+        id="description"
+        name="description"
+        rows={3}
+        class="mt-2 w-full border border-espresso/20 bg-porcelain px-4 py-3 text-sm outline-none focus:border-cognac"
+      >{product.description}</textarea>
+    </div>
+
+    <div class="sm:col-span-2">
+      <label for="images" class="block text-sm text-espresso">
+        روابط الصور، رابط في كل سطر
+      </label>
+      <textarea
+        id="images"
+        name="images"
+        rows={4}
+        dir="ltr"
+        class="mt-2 w-full border border-espresso/20 bg-porcelain px-4 py-3 text-sm outline-none focus:border-cognac"
+      >{product.images.join('\n')}</textarea>
+    </div>
+
+    <div class="sm:col-span-2">
+      <label for="variants" class="block text-sm text-espresso">
+        الألوان والأحجام، تركيبة في كل سطر
+      </label>
+      <textarea
+        id="variants"
+        name="variants"
+        rows={7}
+        dir="ltr"
+        class="mt-2 w-full border border-espresso/20 bg-porcelain px-4 py-3 font-mono text-sm outline-none focus:border-cognac"
+      >{variantsToLines(product.variants)}</textarea>
+      <p class="mt-2 text-xs leading-relaxed text-stone">
+        كل سطر: اسم اللون، كود اللون، الحجم، الكمية المتاحة. أي سطر تحذفه هنا
+        يُحذف من المتجر.
+      </p>
+    </div>
+
+    <div class="flex flex-wrap gap-4 sm:col-span-2">
+      <button
+        type="submit"
+        class="bg-espresso px-8 py-3.5 text-sm text-porcelain transition-colors hover:bg-cognac"
+      >
+        حفظ التعديلات
+      </button>
+      <a
+        href={`/products/${product.slug}`}
+        class="border border-espresso/20 px-8 py-3.5 text-sm text-espresso transition-colors hover:border-cognac hover:text-cognac"
+      >
+        عرضها على المتجر
+      </a>
+    </div>
+  </form>
+
+  <form
+    method="post"
+    action="/api/admin/products/delete"
+    class="mt-12 border-t border-espresso/10 pt-8"
+  >
+    <input type="hidden" name="id" value={product.id} />
+    <button
+      type="submit"
+      class="text-sm text-stone underline decoration-stone/30 underline-offset-4 hover:text-cognac"
+    >
+      حذف هذه القطعة
+    </button>
+    <p class="mt-2 text-xs leading-relaxed text-stone">
+      الحذف يزيلها من المتجر. الطلبات السابقة تحتفظ بسجلها.
+    </p>
+  </form>
+</Admin>

@@ -1,0 +1,41 @@
+---
+const year = new Date().getFullYear();
+---
+
+<footer class="mt-24 border-t border-espresso/10 bg-linen/60">
+  <div class="mx-auto max-w-6xl px-5 py-10 sm:px-8">
+    <div class="flex flex-col gap-8 sm:flex-row sm:items-start sm:justify-between">
+      <div class="sm:max-w-xs">
+        <p class="font-display text-xl tracking-[0.2em] text-espresso">NEVERT</p>
+        <p class="mt-2 text-sm leading-relaxed text-stone">
+          Bags cut, stitched and finished by four pairs of hands in a small
+          workshop. No assembly lines.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-2 gap-x-8 gap-y-6 text-sm sm:gap-x-16">
+        <div>
+          <p class="text-espresso">Shop</p>
+          <ul class="mt-2.5 space-y-1.5 text-stone">
+            <li><a class="hover:text-cognac" href="/collections/atelier">Atelier</a></li>
+            <li><a class="hover:text-cognac" href="/collections/soft-carry">Soft Carry</a></li>
+            <li><a class="hover:text-cognac" href="/collections/evening">Evening</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <p class="text-espresso">Questions</p>
+          <ul class="mt-2.5 space-y-1.5 text-stone">
+            <li><a class="hover:text-cognac" href="/about">The atelier</a></li>
+            <li><a class="hover:text-cognac" href="/contact">Contact us</a></li>
+            <li><a class="hover:text-cognac" href="/cart">Your bag</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-8 border-t border-espresso/10 pt-5 text-xs text-stone">
+      © {year} NEVERT. Orders are confirmed over WhatsApp.
+    </div>
+  </div>
+</footer>

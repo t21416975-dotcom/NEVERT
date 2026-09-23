@@ -1,0 +1,31 @@
+---
+import { formatPrice, type Product } from '../data/catalog';
+
+
+interface Props {
+  product: Product;
+}
+
+const { product } = Astro.props;
+const href = `/products/${product.slug}`;
+---
+
+<a href={href} class="group block">
+  <div class="relative overflow-hidden bg-linen">
+    <img
+      src={product.images[0]}
+      alt={product.name}
+      loading="lazy"
+      width="900"
+      height="1100"
+      class="aspect-[4/5] w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.03] motion-reduce:transition-none motion-reduce:group-hover:scale-100"
+    />
+  </div>
+  <div class="mt-4 flex items-baseline justify-between gap-4">
+    <h3 class="font-display text-lg text-espresso">{product.name}</h3>
+    <p class="text-sm tabular-nums text-stone">{formatPrice(product.price)}</p>
+  </div>
+  <p class="mt-1 text-xs text-stone">
+    {Array.from(new Set(product.variants.map((v) => v.color))).join(' · ')}
+  </p>
+</a>

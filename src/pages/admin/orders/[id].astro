@@ -1,0 +1,159 @@
+---
+import Admin from '../../../layouts/Admin.astro';
+import { getOrder } from '../../../lib/admin-data';
+import { ORDER_STATUSES, formatPrice } from '../../../lib/types';
+import { orderMessage, waLink } from '../../../lib/format';
+import { formatDateTime, orderStatusLabel, piecesLabel } from '../../../lib/labels';
+
+const id = Number(Astro.params.id);
+const order = Number.isFinite(id) ? await getOrder(id) : null;
+const admin = Astro.locals.admin;
+
+if (!order) {
+  return Astro.redirect('/admin/orders');
+}
+
+const saved = Astro.url.searchParams.get('saved');
+const error = Astro.url.searchParams.get('error');
+const message = orderMessage(order);
+---
+
+<Admin title={`طلب #${order.id} — لوحة تحكم NEVERT`} email={admin?.email}>
+  <a
+    href="/admin/orders"
+    class="text-sm text-stone underline decoration-stone/30 underline-offset-4 hover:text-cognac"
+  >
+    رجوع إلى الطلبات
+  </a>
+
+  <div class="mt-6 flex flex-wrap items-start justify-between gap-6">
+    <div>
+      <h1 class="text-3xl text-espresso">{order.customer_name}</h1>
+      <p class="mt-2 text-sm text-stone">
+        طلب #{order.id} · {formatDateTime(order.created_at)}
+      </p>
+      <p class="mt-1 text-sm text-cognac">
+        {orderStatusLabel[order.status] ?? order.status}
+      </p>
+    </div>
+
+    <a
+      href={waLink(order.whatsapp_number, message)}
+      target="_blank"
+      rel="noopener"
+      class="bg-espresso px-6 py-3 text-sm text-porcelain transition-colors hover:bg-cognac"
+    >
+      افتح محادثة واتساب
+    </a>
+  </div>
+
+  {
+    saved && (
+      <p class="mt-8 border border-espresso/15 bg-linen/60 px-4 py-3 text-sm text-espresso">
+        تم الحفظ.
+      </p>
+    )
+  }
+  {
+    error && (
+      <p
+        role="alert"
+        class="mt-8 border border-cognac/40 bg-cognac/5 px-4 py-3 text-sm text-espresso"
+      >
+        تعذّر الحفظ، حاول مرة أخرى.
+      </p>
+    )
+  }
+  <section class="mt-10 grid gap-12 sm:grid-cols-[1.2fr_1fr]">
+    <div>
+      <h2 class="text-2xl text-espresso">القطع ({order.items.length})</h2>
+      <ul class="mt-5 divide-y divide-espresso/10 border-y border-espresso/10">
+        {
+          order.items.map((item) => (
+            <li class="flex items-baseline justify-between gap-6 py-4">
+              <div>
+                <p class="text-espresso">{item.name}</p>
+                <p class="mt-1 text-sm text-stone">
+                  {item.color} · {item.size} · الكمية {item.qty}
+                </p>
+              </div>
+              <p class="latin text-sm tabular-nums text-espresso">
+                {formatPrice(Number(item.line_total))}
+              </p>
+            </li>
+          ))
+        }
+      </ul>
+      <div class="mt-5 flex items-baseline justify-between">
+        <span class="text-espresso">الإجمالي</span>
+        <span class="latin text-2xl tabular-nums text-espresso">
+          {formatPrice(Number(order.total))}
+        </span>
+      </div>
+      <p class="mt-3 text-sm text-stone">
+        سعر التوصيل غير محسوب؛ اتفق عليه مع العميل على واتساب.
+      </p>
+    </div>
+
+    <div>
+      <h2 class="text-2xl text-espresso">بيانات العميل</h2>
+      <dl class="mt-5 space-y-3 text-sm">
+        <div class="flex justify-between gap-6 border-b border-espresso/10 pb-3">
+          <dt class="text-stone">رقم واتساب</dt>
+          <dd class="latin text-espresso">{order.whatsapp_number}</dd>
+        </div>
+        <div class="flex justify-between gap-6 border-b border-espresso/10 pb-3">
+          <dt class="text-stone">المدينة والعنوان</dt>
+          <dd class="max-w-[60%] text-right text-espresso">{order.city ?? '—'}</dd>
+        </div>
+        <div class="flex justify-between gap-6 border-b border-espresso/10 pb-3">
+          <dt class="text-stone">عدد القطع</dt>
+          <dd class="text-espresso">{piecesLabel(order.items.length)}</dd>
+        </div>
+      </dl>
+
+      <form method="post" action="/api/admin/orders/status" class="mt-8">
+        <input type="hidden" name="id" value={order.id} />
+        <input type="hidden" name="back" value={`/admin/orders/${order.id}`} />
+        <label for="status" class="block text-sm text-espresso">حالة الطلب</label>
+        <select
+          id="status"
+          name="status"
+          class="mt-2 w-full border border-espresso/20 bg-porcelain px-4 py-3 text-sm outline-none focus:border-cognac"
+        >
+          {
+            ORDER_STATUSES.map((s) => (
+              <option value={s} selected={s === order.status}>
+                {orderStatusLabel[s]}
+              </option>
+            ))
+          }
+        </select>
+        <button
+          type="submit"
+          class="mt-4 w-full bg-espresso px-6 py-3 text-sm text-porcelain transition-colors hover:bg-cognac"
+        >
+          حفظ الحالة
+        </button>
+      </form>
+
+      <form method="post" action="/api/admin/orders/notes" class="mt-10">
+        <input type="hidden" name="id" value={order.id} />
+        <label for="notes" class="block text-sm text-espresso">ملاحظات العميل</label>
+        <textarea
+          id="notes"
+          name="notes"
+          rows={4}
+          placeholder="نقش الاسم، وقت توصيل مفضّل، إهداء"
+          class="mt-2 w-full border border-espresso/20 bg-porcelain px-4 py-3 text-sm outline-none focus:border-cognac"
+        >{order.notes ?? ''}</textarea>
+        <button
+          type="submit"
+          class="mt-4 w-full border border-espresso/20 px-6 py-3 text-sm text-espresso transition-colors hover:border-cognac hover:text-cognac"
+        >
+          حفظ الملاحظات
+        </button>
+      </form>
+    </div>
+  </section>
+</Admin>

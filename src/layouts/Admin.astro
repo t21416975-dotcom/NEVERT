@@ -1,0 +1,111 @@
+---
+import '../styles/global.css';
+import { orderStatusLabel } from '../lib/labels';
+
+interface Props {
+  title: string;
+  email?: string;
+  newOrders?: number;
+}
+
+const { title, email, newOrders = 0 } = Astro.props;
+const path = Astro.url.pathname;
+
+const nav = [
+  { href: '/admin', label: 'الطلبات', match: /^\/admin(\/orders)?(\/.*)?$/ },
+  { href: '/admin/products', label: 'المنتجات', match: /^\/admin\/products/ },
+  { href: '/admin/collections', label: 'المجموعات', match: /^\/admin\/collections/ },
+];
+---
+
+<!doctype html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=IBM+Plex+Sans+Arabic:wght@300;400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <title>{title}</title>
+    <style is:global>
+      body {
+        font-family: 'IBM Plex Sans Arabic', system-ui, sans-serif;
+      }
+      h1,
+      h2,
+      h3,
+      h4 {
+        font-family: Amiri, 'IBM Plex Sans Arabic', serif;
+        letter-spacing: 0;
+      }
+      .latin {
+        font-family: 'IBM Plex Sans Arabic', system-ui, sans-serif;
+        direction: ltr;
+        unicode-bidi: isolate;
+        display: inline-block;
+      }
+    </style>
+  </head>
+  <body class="min-h-screen bg-porcelain text-espresso antialiased">
+    <header class="border-b border-espresso/10 bg-linen/60">
+      <div class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-5 py-4 sm:px-8">
+        <div class="flex items-baseline gap-3">
+          <a href="/admin" class="font-display text-xl tracking-[0.2em] text-espresso">
+            NEVERT
+          </a>
+          <span class="text-xs text-stone">لوحة التحكم</span>
+        </div>
+        <div class="flex items-center gap-5 text-sm">
+          {email && <span class="latin hidden text-stone sm:inline">{email}</span>}
+          <a href="/" class="text-espresso hover:text-cognac">عرض المتجر</a>
+          <form method="post" action="/api/admin/logout">
+            <button
+              type="submit"
+              class="text-stone underline decoration-stone/30 underline-offset-4 hover:text-cognac"
+            >
+              تسجيل الخروج
+            </button>
+          </form>
+        </div>
+      </div>
+    </header>
+
+    <div class="mx-auto flex max-w-6xl flex-col gap-8 px-5 py-8 sm:px-8 lg:flex-row lg:gap-14">
+      <nav class="lg:w-40 lg:shrink-0" aria-label="أقسام اللوحة">
+        <ul class="flex gap-6 lg:flex-col lg:gap-3">
+          {
+            nav.map((item) => (
+              <li>
+                <a
+                  href={item.href}
+                  class:list={[
+                    'text-sm transition-colors hover:text-cognac',
+                    item.match.test(path) ? 'text-cognac' : 'text-espresso',
+                  ]}
+                >
+                  {item.label}
+                  {item.label === 'الطلبات' && newOrders > 0 && (
+                    <span class="latin mr-2 rounded-full bg-cognac px-2 py-0.5 text-xs text-porcelain">
+                      {newOrders}
+                    </span>
+                  )}
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+        <p class="mt-8 hidden text-xs leading-relaxed text-stone lg:block">
+          مراحل الطلب: {Object.values(orderStatusLabel).join(' ← ')}
+        </p>
+      </nav>
+
+      <main class="min-w-0 flex-1">
+        <slot />
+      </main>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,14 @@
+---
+import Base from '../layouts/Base.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import CartPage from '../components/CartPage.tsx';
+
+const whatsapp = import.meta.env.PUBLIC_WHATSAPP_NUMBER ?? '';
+---
+
+<Base title="Your bag — NEVERT">
+  <Header slot="header" />
+  <CartPage client:only="react" whatsapp={whatsapp} />
+  <Footer slot="footer" />
+</Base>

@@ -1,0 +1,210 @@
+---
+import Base from '../layouts/Base.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import ProductCard from '../components/ProductCard.astro';
+import { listCollections, listProducts } from '../lib/store';
+import { formatPrice } from '../lib/types';
+
+const [collections, products] = await Promise.all([
+  listCollections(),
+  listProducts(),
+]);
+const featured = products.filter((p) => p.featured).slice(0, 4);
+const hero = products.find((p) => p.slug === 'saddle-tote') ?? products[0];
+---
+
+<Base title="NEVERT — Handcrafted bags, made one at a time">
+  <Header slot="header" overlay />
+
+  <!-- Hero: full-screen image, headline and actions overlaid on a darkened frame -->
+  <section class="relative">
+    <div class="relative h-screen h-[100svh] min-h-[34rem] w-full overflow-hidden bg-espresso">
+      <img
+        src={hero.images[0]}
+        alt="A hand-stitched leather tote resting on a workshop bench"
+        width="1600"
+        height="1100"
+        fetchpriority="high"
+        class="absolute inset-0 h-full w-full object-cover"
+      />
+      <!-- darkening layer: heavier at the bottom so the text stays readable -->
+      <div
+        class="absolute inset-0 bg-gradient-to-t from-espresso/85 via-espresso/40 to-espresso/25"
+        aria-hidden="true"
+      >
+      </div>
+
+      <div
+        class="relative z-10 mx-auto flex h-full max-w-6xl flex-col justify-center px-6 pb-20 pt-24 sm:px-8"
+      >
+        <p class="text-xs uppercase tracking-[0.3em] text-porcelain/70">
+          Handcrafted, one at a time
+        </p>
+        <h1
+          class="mt-4 max-w-xl font-display text-[2.9rem] leading-[1.03] tracking-[-0.01em] text-porcelain sm:max-w-2xl sm:text-7xl"
+        >
+          Six bags, made slowly
+        </h1>
+        <p class="mt-5 max-w-md leading-relaxed text-porcelain/85">
+          Every piece is cut from a single hide and closed by hand, one stitch
+          at a time. What leaves the workshop is meant to outlast the season
+          it was bought in.
+        </p>
+        <div class="mt-8 flex flex-wrap items-center gap-6">
+          <a
+            href="/collections"
+            class="bg-porcelain px-8 py-3.5 text-sm tracking-[0.08em] text-espresso transition-colors hover:bg-cognac hover:text-porcelain"
+          >
+            See the collections
+          </a>
+          <a
+            href="/about"
+            class="text-sm text-porcelain underline decoration-porcelain/30 underline-offset-4 transition-colors hover:decoration-porcelain/70"
+          >
+            How they are made
+          </a>
+        </div>
+      </div>
+
+      <!-- scroll cue -->
+      <div
+        class="absolute inset-x-0 bottom-6 z-10 flex justify-center"
+        aria-hidden="true"
+      >
+        <span
+          class="flex flex-col items-center gap-2 text-[0.65rem] uppercase tracking-[0.3em] text-porcelain/60"
+        >
+          Scroll
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="m6 9 6 6 6-6" />
+          </svg>
+        </span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Collections -->
+  <section class="mx-auto max-w-6xl px-5 pt-24 sm:px-8">
+    <h2 class="font-display text-3xl text-espresso sm:text-4xl">Collections</h2>
+    <div class="mt-10 grid gap-x-6 gap-y-12 sm:grid-cols-3">
+      {
+        collections.map((c) => (
+          <a href={`/collections/${c.slug}`} class="group block">
+            <div class="overflow-hidden bg-linen">
+              <img
+                src={c.cover}
+                alt=""
+                loading="lazy"
+                width="1200"
+                height="900"
+                class="aspect-[4/3] w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.03] motion-reduce:transition-none motion-reduce:group-hover:scale-100"
+              />
+            </div>
+            <h3 class="mt-4 font-display text-xl text-espresso">{c.name}</h3>
+            <p class="mt-1 text-sm text-stone">{c.tagline}</p>
+          </a>
+        ))
+      }
+    </div>
+  </section>
+
+  <!-- Featured pieces -->
+  <section class="mx-auto max-w-6xl px-5 pt-24 sm:px-8">
+    <div class="flex flex-wrap items-baseline justify-between gap-3">
+      <h2 class="font-display text-3xl text-espresso sm:text-4xl">
+        From the bench this month
+      </h2>
+      <a
+        href="/collections"
+        class="text-sm text-stone underline decoration-stone/30 underline-offset-4 hover:text-cognac"
+      >
+        All six pieces
+      </a>
+    </div>
+
+    <div class="mt-10 grid grid-cols-2 gap-x-5 gap-y-10 sm:gap-x-6 lg:grid-cols-4">
+      {featured.map((p) => <ProductCard product={p} />)}
+    </div>
+  </section>
+
+  <!-- Materials: the one wide, quiet statement -->
+  <section class="mt-24 bg-linen/60 px-5 py-20 sm:px-8">
+    <div class="mx-auto grid max-w-6xl gap-10 sm:grid-cols-[1.1fr_1fr] sm:items-center">
+      <div>
+        <h2 class="font-display text-3xl leading-tight text-espresso sm:text-4xl">
+          Vegetable-tanned hides, brass that patinas, thread that holds
+        </h2>
+        <p class="mt-6 max-w-lg leading-relaxed text-stone">
+          We buy from two tanneries, both under a day's drive from the workshop.
+          Nothing is bonded, nothing is coated. The leather darkens in sunlight
+          and the brass settles into a warmer tone with use.
+        </p>
+        <dl class="mt-10 grid grid-cols-2 gap-8 sm:max-w-md">
+          <div>
+            <dt class="text-sm text-stone">Days per bag</dt>
+            <dd class="mt-1 font-display text-3xl text-cognac">3–6</dd>
+          </div>
+          <div>
+            <dt class="text-sm text-stone">Hands in the workshop</dt>
+            <dd class="mt-1 font-display text-3xl text-cognac">4</dd>
+          </div>
+        </dl>
+      </div>
+      <div class="overflow-hidden bg-porcelain">
+        <img
+          src="https://picsum.photos/seed/workshop-hands/1100/1300"
+          alt="A pair of hands stitching the edge of a leather panel"
+          loading="lazy"
+          width="1100"
+          height="1300"
+          class="aspect-[4/5] w-full object-cover"
+        />
+      </div>
+    </div>
+  </section>
+
+  <!-- How ordering works: a real sequence, so numbered -->
+  <section class="mx-auto max-w-6xl px-5 pt-24 sm:px-8">
+    <h2 class="font-display text-3xl text-espresso sm:text-4xl">
+      Ordering takes two minutes
+    </h2>
+    <ol class="mt-10 grid gap-8 sm:grid-cols-3">
+      <li>
+        <p class="font-display text-2xl text-cognac">1</p>
+        <h3 class="mt-3 text-espresso">Choose colour and size</h3>
+        <p class="mt-2 text-sm leading-relaxed text-stone">
+          Add the pieces you want to your bag. Nothing is charged online.
+        </p>
+      </li>
+      <li>
+        <p class="font-display text-2xl text-cognac">2</p>
+        <h3 class="mt-3 text-espresso">Send us your details</h3>
+        <p class="mt-2 text-sm leading-relaxed text-stone">
+          Your name, WhatsApp number and where the bag is going.
+        </p>
+      </li>
+      <li>
+        <p class="font-display text-2xl text-cognac">3</p>
+        <h3 class="mt-3 text-espresso">We message you</h3>
+        <p class="mt-2 text-sm leading-relaxed text-stone">
+          We confirm the piece, the total and delivery, then it goes to the bench.
+        </p>
+      </li>
+    </ol>
+    <p class="mt-10 text-sm text-stone">
+      Pieces start at {formatPrice(Math.min(...products.map((p) => p.price)))}.
+    </p>
+  </section>
+
+  <Footer slot="footer" />
+</Base>

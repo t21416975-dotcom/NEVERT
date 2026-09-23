@@ -1,0 +1,233 @@
+---
+import Admin from '../../../layouts/Admin.astro';
+import { listCollectionsAdmin, ordersReady } from '../../../lib/admin-data';
+import { listCollections, productsInCollection } from '../../../lib/store';
+import { piecesLabel } from '../../../lib/labels';
+
+const [dbCollections, shopCollections] = await Promise.all([
+  listCollectionsAdmin(),
+  listCollections(),
+]);
+const admin = Astro.locals.admin;
+const saved = Astro.url.searchParams.get('saved');
+const error = Astro.url.searchParams.get('error');
+const dbReady = ordersReady();
+
+const errorText =
+  error === 'slug'
+    ? 'هذا العنوان مستخدم بالفعل لمجموعة أخرى.'
+    : error === 'name'
+      ? 'الاسم مطلوب ولا يمكن تركه فارغًا.'
+      : error
+        ? 'تعذّر الحفظ، حاول مرة أخرى.'
+        : '';
+
+const counts = new Map<string, number>();
+for (const c of shopCollections) {
+  counts.set(c.slug, (await productsInCollection(c.slug)).length);
+}
+---
+
+<Admin title="المجموعات — لوحة تحكم NEVERT" email={admin?.email}>
+  <h1 class="text-3xl text-espresso">المجموعات</h1>
+  <p class="mt-3 max-w-lg text-sm leading-relaxed text-stone">
+    كل مجموعة لها صورة غلاف والنصوص التي تظهر بجانبها في صفحتها. أما ربط القطع
+    بالمجموعة فيتم من صفحة المنتج.
+  </p>
+
+  {
+    !dbReady && (
+      <p class="mt-6 border border-cognac/40 bg-cognac/5 px-4 py-3 text-sm leading-relaxed text-espresso">
+        قاعدة البيانات غير متصلة، لذلك تُعرض هذه المجموعات الثلاث من الكود. انقل
+        القطع الأساسية إلى قاعدة البيانات من صفحة المنتجات بعد ضبط المفاتيح.
+      </p>
+    )
+  }
+  {
+    saved && (
+      <p class="mt-6 border border-espresso/15 bg-linen/60 px-4 py-3 text-sm text-espresso">
+        تم الحفظ.
+      </p>
+    )
+  }
+  {
+    errorText && (
+      <p
+        role="alert"
+        class="mt-6 border border-cognac/40 bg-cognac/5 px-4 py-3 text-sm text-espresso"
+      >
+        {errorText}
+      </p>
+    )
+  }
+
+  <ul class="mt-10 divide-y divide-espresso/10 border-y border-espresso/10">
+    {
+      shopCollections.map((c) =>
+        dbCollections.find((d) => d.id === c.id) ? (
+          <li class="py-6">
+            <form
+              method="post"
+              action="/api/admin/collections/save"
+              class="grid gap-5 sm:grid-cols-2"
+            >
+              <input type="hidden" name="id" value={c.id} />
+              <div>
+                <label for={`name-${c.id}`} class="block text-sm text-espresso">
+                  الاسم
+                </label>
+                <input
+                  id={`name-${c.id}`}
+                  name="name"
+                  required
+                  value={c.name}
+                  class="mt-2 w-full border border-espresso/20 bg-porcelain px-4 py-3 text-sm outline-none focus:border-cognac"
+                />
+              </div>
+              <div>
+                <label for={`slug-${c.id}`} class="block text-sm text-espresso">
+                  رابط الصفحة
+                </label>
+                <input
+                  id={`slug-${c.id}`}
+                  name="slug"
+                  dir="ltr"
+                  value={c.slug}
+                  class="mt-2 w-full border border-espresso/20 bg-porcelain px-4 py-3 text-sm outline-none focus:border-cognac"
+                />
+              </div>
+              <div class="sm:col-span-2">
+                <label for={`tagline-${c.id}`} class="block text-sm text-espresso">
+                  سطر واحد بجانب الاسم
+                </label>
+                <input
+                  id={`tagline-${c.id}`}
+                  name="tagline"
+                  value={c.tagline}
+                  class="mt-2 w-full border border-espresso/20 bg-porcelain px-4 py-3 text-sm outline-none focus:border-cognac"
+                />
+              </div>
+              <div class="sm:col-span-2">
+                <label for={`description-${c.id}`} class="block text-sm text-espresso">
+                  الوصف
+                </label>
+                <textarea
+                  id={`description-${c.id}`}
+                  name="description"
+                  rows={3}
+                  class="mt-2 w-full border border-espresso/20 bg-porcelain px-4 py-3 text-sm outline-none focus:border-cognac"
+                >{c.description}</textarea>
+              </div>
+              <div class="sm:col-span-2">
+                <label for={`cover-${c.id}`} class="block text-sm text-espresso">
+                  رابط صورة الغلاف
+                </label>
+                <input
+                  id={`cover-${c.id}`}
+                  name="cover"
+                  dir="ltr"
+                  value={c.cover}
+                  class="mt-2 w-full border border-espresso/20 bg-porcelain px-4 py-3 text-sm outline-none focus:border-cognac"
+                />
+              </div>
+              <div class="flex flex-wrap items-center gap-5 sm:col-span-2">
+                <button
+                  type="submit"
+                  class="bg-espresso px-8 py-3 text-sm text-porcelain transition-colors hover:bg-cognac"
+                >
+                  حفظ المجموعة
+                </button>
+                <span class="text-sm text-stone">
+                  {piecesLabel(counts.get(c.slug) ?? 0)} ·{' '}
+                  <span class="latin">/collections/{c.slug}</span>
+                </span>
+              </div>
+            </form>
+          </li>
+        ) : (
+          <li class="flex flex-wrap items-baseline justify-between gap-4 py-6">
+            <div>
+              <p class="text-lg text-espresso">{c.name}</p>
+              <p class="mt-1 text-sm text-stone">
+                {c.tagline} · {piecesLabel(counts.get(c.slug) ?? 0)}
+              </p>
+            </div>
+            <span class="text-sm text-stone">في الكود</span>
+          </li>
+        )
+      )
+    }
+  </ul>
+
+  {
+    dbReady && (
+      <section class="mt-16">
+        <h2 class="text-2xl text-espresso">إضافة مجموعة جديدة</h2>
+        <form
+          method="post"
+          action="/api/admin/collections/save"
+          class="mt-6 grid gap-5 sm:grid-cols-2"
+        >
+          <div>
+            <label for="new-name" class="block text-sm text-espresso">الاسم</label>
+            <input
+              id="new-name"
+              name="name"
+              required
+              class="mt-2 w-full border border-espresso/20 bg-porcelain px-4 py-3 text-sm outline-none focus:border-cognac"
+            />
+          </div>
+          <div>
+            <label for="new-slug" class="block text-sm text-espresso">
+              رابط الصفحة <span class="text-stone">(لو تركته فارغًا يُبنى من الاسم)</span>
+            </label>
+            <input
+              id="new-slug"
+              name="slug"
+              dir="ltr"
+              class="mt-2 w-full border border-espresso/20 bg-porcelain px-4 py-3 text-sm outline-none focus:border-cognac"
+            />
+          </div>
+          <div class="sm:col-span-2">
+            <label for="new-tagline" class="block text-sm text-espresso">
+              سطر واحد بجانب الاسم
+            </label>
+            <input
+              id="new-tagline"
+              name="tagline"
+              class="mt-2 w-full border border-espresso/20 bg-porcelain px-4 py-3 text-sm outline-none focus:border-cognac"
+            />
+          </div>
+          <div class="sm:col-span-2">
+            <label for="new-description" class="block text-sm text-espresso">الوصف</label>
+            <textarea
+              id="new-description"
+              name="description"
+              rows={3}
+              class="mt-2 w-full border border-espresso/20 bg-porcelain px-4 py-3 text-sm outline-none focus:border-cognac"
+            ></textarea>
+          </div>
+          <div class="sm:col-span-2">
+            <label for="new-cover" class="block text-sm text-espresso">
+              رابط صورة الغلاف
+            </label>
+            <input
+              id="new-cover"
+              name="cover"
+              dir="ltr"
+              class="mt-2 w-full border border-espresso/20 bg-porcelain px-4 py-3 text-sm outline-none focus:border-cognac"
+            />
+          </div>
+          <div class="sm:col-span-2">
+            <button
+              type="submit"
+              class="bg-espresso px-8 py-3.5 text-sm text-porcelain transition-colors hover:bg-cognac"
+            >
+              إضافة المجموعة
+            </button>
+          </div>
+        </form>
+      </section>
+    )
+  }
+</Admin>

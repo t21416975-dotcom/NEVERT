@@ -1,0 +1,115 @@
+---
+import Admin from '../../layouts/Admin.astro';
+import { orderCounts, listOrders, ordersReady } from '../../lib/admin-data';
+import { formatPrice } from '../../lib/types';
+import { orderMessage, waLink } from '../../lib/format';
+import {
+  formatDay,
+  orderStatusLabel,
+  ordersLabel,
+  piecesLabel,
+  shortStatusLabel,
+} from '../../lib/labels';
+
+const [counts, orders] = await Promise.all([orderCounts(), listOrders()]);
+const latest = orders.slice(0, 6);
+const admin = Astro.locals.admin;
+const openCount = counts.new + counts.open;
+---
+
+<Admin title="الطلبات — لوحة تحكم NEVERT" email={admin?.email} newOrders={counts.new}>
+  <h1 class="text-3xl text-espresso">اليوم في الورشة</h1>
+  <p class="mt-3 text-sm leading-relaxed text-stone">
+    افتح محادثة واتساب مع العميل، وبعدها انقل الطلب بين المراحل.
+  </p>
+
+  {
+    !ordersReady() && (
+      <p class="mt-8 border border-cognac/40 bg-cognac/5 px-4 py-3 text-sm text-espresso">
+        قاعدة بيانات الطلبات غير متصلة. أضف PUBLIC_SUPABASE_URL و
+        SUPABASE_SERVICE_ROLE_KEY، ونفّذ ملف supabase/schema.sql، ثم أعد تحميل
+        الصفحة.
+      </p>
+    )
+  }
+
+  <dl class="mt-10 grid grid-cols-2 gap-6 sm:grid-cols-4">
+    <div class="border-t border-espresso/10 pt-4">
+      <dt class="text-sm text-stone">طلبات جديدة</dt>
+      <dd class="latin mt-1 text-3xl text-cognac">{counts.new}</dd>
+    </div>
+    <div class="border-t border-espresso/10 pt-4">
+      <dt class="text-sm text-stone">تحت التواصل</dt>
+      <dd class="latin mt-1 text-3xl text-espresso">{counts.open}</dd>
+    </div>
+    <div class="border-t border-espresso/10 pt-4">
+      <dt class="text-sm text-stone">تم التسليم</dt>
+      <dd class="latin mt-1 text-3xl text-espresso">{counts.delivered}</dd>
+    </div>
+    <div class="border-t border-espresso/10 pt-4">
+      <dt class="text-sm text-stone">قيمة المُسلَّم</dt>
+      <dd class="latin mt-1 text-3xl text-espresso">
+        {formatPrice(counts.revenue)}
+      </dd>
+    </div>
+  </dl>
+
+  <section class="mt-14">
+    <div class="flex flex-wrap items-baseline justify-between gap-3">
+      <h2 class="text-2xl text-espresso">أحدث الطلبات</h2>
+      <a
+        href="/admin/orders"
+        class="text-sm text-stone underline decoration-stone/30 underline-offset-4 hover:text-cognac"
+      >
+        كل الطلبات ({ordersLabel(orders.length)})
+      </a>
+    </div>
+
+    {
+      latest.length === 0 ? (
+        <p class="mt-6 border-t border-espresso/10 pt-6 text-sm leading-relaxed text-stone">
+          لا توجد طلبات بعد. عندما يرسل عميل طلبًا من صفحة السلة سيظهر هنا
+          مباشرة.
+        </p>
+      ) : (
+        <ul class="mt-6 divide-y divide-espresso/10 border-y border-espresso/10">
+          {latest.map((o) => (
+            <li class="flex flex-wrap items-center justify-between gap-4 py-4">
+              <div>
+                <a
+                  href={`/admin/orders/${o.id}`}
+                  class="text-lg text-espresso hover:text-cognac"
+                >
+                  #{o.id} — {o.customer_name}
+                </a>
+                <p class="mt-1 text-sm text-stone">
+                  {piecesLabel(o.items.length)} · {formatPrice(Number(o.total))} ·{' '}
+                  {formatDay(o.created_at)}
+                </p>
+              </div>
+              <div class="flex items-center gap-4">
+                <span class="text-sm text-cognac">
+                  {shortStatusLabel[o.status] ?? o.status}
+                </span>
+                <a
+                  href={waLink(o.whatsapp_number, orderMessage(o))}
+                  target="_blank"
+                  rel="noopener"
+                  class="border border-espresso/20 px-4 py-2 text-sm text-espresso transition-colors hover:border-cognac hover:text-cognac"
+                >
+                  واتساب
+                </a>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )
+    }
+  </section>
+
+  <p class="mt-10 text-sm text-stone">
+    {openCount === 0
+      ? 'لا يوجد طلب ينتظر ردًا الآن.'
+      : `يوجد ${ordersLabel(openCount)} تحتاج ردًا.`}
+  </p>
+</Admin>

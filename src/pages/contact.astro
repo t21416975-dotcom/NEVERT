@@ -1,0 +1,67 @@
+---
+import Base from '../layouts/Base.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+
+const whatsapp = import.meta.env.PUBLIC_WHATSAPP_NUMBER ?? '';
+---
+
+<Base title="Contact — NEVERT">
+  <Header slot="header" />
+
+  <section class="mx-auto max-w-6xl px-5 pt-12 sm:px-8">
+    <h1 class="font-display text-4xl text-espresso sm:text-5xl">
+      Talk to the workshop
+    </h1>
+    <p class="mt-5 max-w-xl leading-relaxed text-stone">
+      Messages go straight to the bench, so a reply may take a few hours during
+      working days. We answer every one.
+    </p>
+
+    <div class="mt-14 grid gap-12 sm:grid-cols-2">
+      <div>
+        <h2 class="font-display text-2xl text-espresso">WhatsApp</h2>
+        <p class="mt-4 leading-relaxed text-stone">
+          The fastest way to ask about a colour, a size, or delivery to your city.
+        </p>
+        {
+          whatsapp ? (
+            <a
+              href={`https://wa.me/${whatsapp}`}
+              target="_blank"
+              rel="noopener"
+              class="mt-6 inline-block bg-espresso px-8 py-3.5 text-sm tracking-[0.08em] text-porcelain transition-colors hover:bg-cognac"
+            >
+              Open WhatsApp
+            </a>
+          ) : (
+            <p class="mt-6 text-sm text-stone">
+              WhatsApp number is being connected. In the meantime, place an order
+              and we will message you.
+            </p>
+          )
+        }
+      </div>
+
+      <div>
+        <h2 class="font-display text-2xl text-espresso">Email</h2>
+        <p class="mt-4 leading-relaxed text-stone">
+          For repairs, wholesale and press.
+        </p>
+        <a
+          href="mailto:hello@maison.example"
+          class="mt-6 inline-block text-espresso underline decoration-espresso/25 underline-offset-4 hover:text-cognac"
+        >
+          hello@maison.example
+        </a>
+
+        <h2 class="mt-12 font-display text-2xl text-espresso">Workshop</h2>
+        <p class="mt-4 leading-relaxed text-stone">
+          Visits by appointment only. Address shared when we confirm your slot.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <Footer slot="footer" />
+</Base>

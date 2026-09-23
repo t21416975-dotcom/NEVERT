@@ -1,0 +1,56 @@
+---
+import Base from '../../layouts/Base.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+import { listCollections, productsInCollection } from '../../lib/store';
+
+const collections = await listCollections();
+const counts = await Promise.all(
+  collections.map(async (c) => (await productsInCollection(c.slug)).length)
+);
+const items = collections.map((c, i) => ({ ...c, count: counts[i] }));
+---
+
+<Base title="Collections — NEVERT">
+  <Header slot="header" />
+
+  <section class="mx-auto max-w-6xl px-5 pt-14 sm:px-8">
+    <h1 class="font-display text-4xl text-espresso sm:text-5xl">Collections</h1>
+    <p class="mt-4 max-w-lg leading-relaxed text-stone">
+      Three lines, six pieces. Each line uses a different weight of hide, so the
+      feel in the hand changes even when the shape looks familiar.
+    </p>
+  </section>
+
+  <div class="mx-auto max-w-6xl px-5 pt-14 sm:px-8">
+    {
+      items.map((c, i) => (
+        <a
+          href={`/collections/${c.slug}`}
+          class="group grid gap-6 border-t border-espresso/10 py-10 sm:grid-cols-[1.2fr_1fr] sm:items-center sm:gap-12"
+        >
+          <div class={`overflow-hidden bg-linen ${i % 2 ? 'sm:order-2' : ''}`}>
+            <img
+              src={c.cover}
+              alt=""
+              loading={i === 0 ? 'eager' : 'lazy'}
+              width="1200"
+              height="900"
+              class="aspect-[4/3] w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.03] motion-reduce:transition-none motion-reduce:group-hover:scale-100"
+            />
+          </div>
+          <div>
+            <h2 class="font-display text-3xl text-espresso">{c.name}</h2>
+            <p class="mt-2 text-sm text-cognac">{c.tagline}</p>
+            <p class="mt-5 max-w-md leading-relaxed text-stone">{c.description}</p>
+            <p class="mt-6 text-sm text-espresso underline decoration-espresso/25 underline-offset-4 group-hover:text-cognac group-hover:decoration-cognac/50">
+              {c.count} pieces in {c.name}
+            </p>
+          </div>
+        </a>
+      ))
+    }
+  </div>
+
+  <Footer slot="footer" />
+</Base>

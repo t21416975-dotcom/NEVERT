@@ -1,0 +1,104 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,400&family=Jost:wght@300;400;500&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    @apply scroll-smooth;
+  }
+  body {
+    @apply bg-porcelain text-espresso font-body font-light antialiased;
+  }
+  h1, h2, h3, h4 {
+    @apply font-display font-normal;
+  }
+  ::selection {
+    @apply bg-cognac/20 text-espresso;
+  }
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-cognac;
+  }
+}
+
+@layer components {
+  /* Transparent header floating over the full-screen hero.
+     Starts see-through with light text, turns into the normal
+     solid header once the page is scrolled. */
+  .site-header--overlay {
+    transition:
+      background-color 0.45s ease,
+      border-color 0.45s ease,
+      backdrop-filter 0.45s ease;
+  }
+  .site-header--overlay .header-fg,
+  .site-header--overlay .header-fg a {
+    color: rgb(250 248 244 / 0.92);
+  }
+  .site-header--overlay .header-fg a:hover {
+    color: #ffffff;
+  }
+  .site-header--overlay.is-solid {
+    background-color: rgb(250 248 244 / 0.88);
+    border-bottom-color: rgb(43 38 32 / 0.08);
+    backdrop-filter: blur(10px);
+  }
+  .site-header--overlay.is-solid .header-fg,
+  .site-header--overlay.is-solid .header-fg a {
+    color: rgb(43 38 32 / 0.85);
+  }
+  .site-header--overlay.is-solid .header-fg a:hover {
+    color: #a67b4f;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@layer utilities {
+  /* Mobile menu follows the overlay header: transparent with light text
+     while floating over the hero, back to solid porcelain once the
+     header turns solid on scroll. Overrides live here (not in
+     @layer components) so they beat the panel's Tailwind utilities. */
+  [data-menu-panel] {
+    transition:
+      background-color 0.45s ease,
+      border-color 0.45s ease;
+  }
+  .site-header--overlay:not(.is-solid) [data-menu-panel] {
+    background-color: transparent;
+    border-top-color: rgb(250 248 244 / 0.18);
+    backdrop-filter: none;
+  }
+  .site-header--overlay:not(.is-solid) [data-menu-panel] a {
+    color: rgb(250 248 244 / 0.92);
+  }
+  .site-header--overlay:not(.is-solid) [data-menu-panel] a:hover {
+    color: #ffffff;
+  }
+  .site-header--overlay:not(.is-solid) [data-menu-panel] li {
+    border-bottom-color: rgb(250 248 244 / 0.12);
+  }
+
+  .reveal {
+    opacity: 0;
+    transform: translateY(14px);
+    transition: opacity 0.7s ease, transform 0.7s ease;
+  }
+  .reveal.is-visible {
+    opacity: 1;
+    transform: none;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .reveal {
+      opacity: 1;
+      transform: none;
+    }
+  }
+}
