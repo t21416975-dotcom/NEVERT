@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,400&family=Jost:wght@300;400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,400&family=Jost:wght@300;400;500&family=Amiri:wght@400;700&family=IBM+Plex+Sans+Arabic:wght@300;400;500&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -23,6 +23,16 @@
 }
 
 @layer components {
+  /* Smooth fade for the main chrome while the label swap runs */
+  main,
+  footer {
+    transition: opacity 0.15s ease;
+  }
+  body.lang-fading main,
+  body.lang-fading footer {
+    opacity: 0;
+  }
+
   /* Transparent header floating over the full-screen hero.
      Starts see-through with light text, turns into the normal
      solid header once the page is scrolled. */
@@ -62,6 +72,22 @@
 }
 
 @layer utilities {
+  /* RTL: switch to the Arabic typeface and turn off letter-spacing,
+     which would otherwise break cursive joining of Arabic glyphs. */
+  html[dir="rtl"] body {
+    font-family: "IBM Plex Sans Arabic", system-ui, sans-serif;
+  }
+  html[dir="rtl"] h1,
+  html[dir="rtl"] h2,
+  html[dir="rtl"] h3,
+  html[dir="rtl"] h4,
+  html[dir="rtl"] .font-display {
+    font-family: "Amiri", "IBM Plex Sans Arabic", serif;
+  }
+  html[dir="rtl"] [class*="tracking-"] {
+    letter-spacing: normal;
+  }
+
   /* Mobile menu follows the overlay header: transparent with light text
      while floating over the hero, back to solid porcelain once the
      header turns solid on scroll. Overrides live here (not in

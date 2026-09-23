@@ -1,5 +1,6 @@
 ---
 import CartBadge from './CartBadge.tsx';
+import LangToggle from './LangToggle.tsx';
 
 interface Props {
   /** Transparent header that floats over a full-screen hero and turns solid on scroll */
@@ -9,9 +10,9 @@ interface Props {
 const { overlay = false } = Astro.props;
 
 const links = [
-  { href: '/collections', label: 'Collections' },
-  { href: '/about', label: 'The atelier' },
-  { href: '/contact', label: 'Contact' },
+    { href: '/collections', label: 'Collections', i18n: 'nav.collections' },
+  { href: '/about', label: 'The atelier', i18n: 'nav.atelier' },
+  { href: '/contact', label: 'Contact', i18n: 'nav.contact' },
 ];
 const path = Astro.url.pathname;
 ---
@@ -36,8 +37,10 @@ const path = Astro.url.pathname;
     <nav class="hidden gap-8 sm:flex" aria-label="Main">
       {
         links.map((l) => (
-          <a
+                    <a
             href={l.href}
+            data-i18n={l.i18n}
+            aria-label={l.i18n}
             class:list={[
               'header-fg font-body text-sm tracking-[0.06em] transition-colors duration-500 hover:text-cognac',
               path.startsWith(l.href) ? 'text-cognac' : 'text-espresso/80',
@@ -49,7 +52,10 @@ const path = Astro.url.pathname;
       }
     </nav>
 
-    <div class="flex items-center gap-4">
+    <div class="flex items-center gap-3">
+            <div class="header-fg transition-colors duration-500">
+        <LangToggle client:load />
+      </div>
       <div class="header-fg transition-colors duration-500">
         <CartBadge client:load />
       </div>
@@ -103,8 +109,10 @@ const path = Astro.url.pathname;
       {
         links.map((l) => (
           <li>
-            <a
+                        <a
               href={l.href}
+              data-i18n={l.i18n}
+              aria-label={l.i18n}
               class:list={[
                 'block border-b border-espresso/5 py-3.5 font-body text-base tracking-[0.04em] transition-colors hover:text-cognac',
                 path.startsWith(l.href) ? 'text-cognac' : 'text-espresso',

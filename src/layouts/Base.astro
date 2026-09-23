@@ -20,7 +20,17 @@ const {
 <html lang={lang} dir={dir}>
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script is:inline>
+      // Apply the saved language before first paint so there's no flash
+      // of LTR/English over the hero while Astro loads.
+      try {
+        const l = localStorage.getItem('nevert-lang');
+        const ar = l === 'ar';
+        document.documentElement.lang = ar ? 'ar' : 'en';
+        document.documentElement.dir = ar ? 'rtl' : 'ltr';
+      } catch (e) {}
+    </script>
     <meta name="description" content={description} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <title>{title}</title>
@@ -44,7 +54,11 @@ const {
         },
         { threshold: 0.12 }
       );
-      document.querySelectorAll('.reveal').forEach((el) => io.observe(el));
+            document.querySelectorAll('.reveal').forEach((el) => io.observe(el));
+    </script>
+    <script>
+      import { applyLang, getStoredLang } from '../lib/i18n';
+      applyLang(getStoredLang());
     </script>
   </body>
 </html>
