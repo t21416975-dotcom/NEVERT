@@ -34,7 +34,10 @@ const { slides, intervalMs = 6000 } = Astro.props;
       loading={i === 0 ? 'eager' : 'lazy'}
       draggable="false"
       aria-hidden={i === 0 ? undefined : 'true'}
-      class="absolute inset-0 h-full w-full object-cover transition-opacity duration-1000 ease-out motion-reduce:transition-none"
+      class:list={[
+        'absolute inset-0 h-full w-full object-cover transition-opacity duration-1000 ease-out motion-reduce:transition-none',
+        i === 0 ? 'opacity-100' : 'opacity-0',
+      ]}
     />
   ))}
 
@@ -48,9 +51,12 @@ const { slides, intervalMs = 6000 } = Astro.props;
           data-count={i + 1}
           data-i18n-attr="aria-label:hero.slide"
           aria-label={`Show slide ${i + 1}`}
-          aria-selected={i === 0 ? 'true' : 'false'}
-          class="h-1.5 rounded-full bg-porcelain/40 transition-all duration-500 hover:bg-porcelain/80"
-        ></button>
+            aria-selected={i === 0 ? 'true' : 'false'}
+            class:list={[
+              'h-1.5 rounded-full transition-all duration-500 hover:bg-porcelain/80',
+              i === 0 ? 'w-7 bg-porcelain' : 'w-2.5 bg-porcelain/40',
+            ]}
+          ></button>
       ))}
     </div>
   )}
@@ -73,6 +79,7 @@ const { slides, intervalMs = 6000 } = Astro.props;
       slides.forEach((img, i) => {
         const active = i === index;
         img.classList.toggle('opacity-0', !active);
+        img.classList.toggle('opacity-100', active);
         img.toggleAttribute('aria-hidden', !active);
         // Only the visible slide keeps its alt (screen readers stay quiet).
         if (!active) img.removeAttribute('alt');
@@ -145,12 +152,3 @@ const { slides, intervalMs = 6000 } = Astro.props;
     start();
   });
 </script>
-
-<style>
-  [data-hero-slide] {
-    opacity: 0;
-  }
-  [data-hero-slide]:first-child {
-    opacity: 1;
-  }
-</style>

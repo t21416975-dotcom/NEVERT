@@ -85,7 +85,10 @@ const altAr = (i: number) => {
           fetchpriority={i === 0 ? 'high' : undefined}
           loading={i === 0 ? 'eager' : 'lazy'}
           draggable="false"
-          class="absolute inset-0 h-full w-full object-cover transition-opacity duration-500 ease-out motion-reduce:transition-none"
+          class:list={[
+            'absolute inset-0 h-full w-full object-cover transition-opacity duration-500 ease-out motion-reduce:transition-none',
+            i === 0 ? 'opacity-100 scale-[1.02]' : 'opacity-0 pointer-events-none',
+          ]}
         />
       ))}
 
@@ -207,6 +210,7 @@ const altAr = (i: number) => {
       stageImgs.forEach((img, i) => {
         const active = i === index;
         img.classList.toggle('opacity-0', !active);
+        img.classList.toggle('opacity-100', active);
         img.classList.toggle('pointer-events-none', !active);
         img.classList.toggle('scale-[1.02]', active);
         if (!active) img.removeAttribute('alt');
@@ -321,12 +325,3 @@ const altAr = (i: number) => {
     render(false);
   });
 </script>
-
-<style>
-  [data-gallery-img] {
-    opacity: 0;
-  }
-  [data-gallery-img]:first-child {
-    opacity: 1;
-  }
-</style>
