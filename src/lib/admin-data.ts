@@ -1,6 +1,5 @@
 import { adminClient } from './db';
 import type { Order, OrderStatus, Variant } from './types';
-import { seedCollections, seedProducts } from '../data/catalog';
 
 export interface AdminResult {
   ok: boolean;
@@ -227,79 +226,4 @@ export async function listCollectionsAdmin() {
     description_ar: string | null;
     cover_image: string | null;
   }[];
-}
-
-/** Copies the starter catalogue in src/data/catalog.ts into Supabase. */
-export async function importStarterCatalogue(): Promise<
-  AdminResult & { products?: number }
-> {
-  const db = adminClient();
-  if (!db) return { ok: false, error: 'No database connection.' };
-
-  const ids = new Map<string, string>();
-
-  for (const c of seedCollections) {
-    const { data, error } = await db
-      .from('collections')
-      .upsert(
-        {
-          name: c.name,
-          name_ar: c.name_ar ?? null,
-          slug: c.slug,
-          tagline: c.tagline,
-          tagline_ar: c.tagline_ar ?? null,
-          description: c.description,
-          description_ar: c.description_ar ?? null,
-          cover_image: c.cover,
-        },
-        { onConflict: 'slug' }
-      )
-      .select('id')
-      .single();
-    if (error || !data) {
-      return { ok: false, error: error?.message ?? 'Collection import failed.' };
-    }
-    ids.set(c.slug, data.id as string);
-  }
-
-  for (const p of seedProducts) {
-    const { data, error } = await db
-      .from('products')
-      .upsert(
-        {
-          name: p.name,
-          name_ar: p.name_ar ?? null,
-          slug: p.slug,
-          description: p.description,
-          description_ar: p.description_ar ?? null,
-          price: p.price,
-          collection_id: ids.get(p.collection) ?? null,
-          images: p.images,
-          featured: Boolean(p.featured),
-        },
-        { onConflict: 'slug' }
-      )
-      .select('id')
-      .single();
-    if (error || !data) {
-      return { ok: false, error: error?.message ?? 'Product import failed.' };
-    }
-
-    await db.from('product_variants').delete().eq('product_id', data.id);
-    if (p.variants.length > 0) {
-      await db.from('product_variants').insert(
-        p.variants.map((v) => ({
-          product_id: data.id,
-          color: v.color,
-          color_ar: v.color_ar ?? null,
-          color_hex: v.colorHex,
-          size: v.size,
-          size_ar: v.size_ar ?? null,
-          stock: v.stock,
-        }))
-      );
-    }
-  }
-
-  return { ok: true, products: seedProducts.length };
 }

@@ -38,7 +38,7 @@ export const dict: Record<string, { en: string; ar: string }> = {
   // home sections
   'home.collections': { en: 'Collections', ar: 'المجموعات' },
   'home.featured': { en: 'From the bench this month', ar: 'من العارضة هذا الشهر' },
-  'home.all': { en: 'All six pieces', ar: 'كل القطع' },
+  'home.all': { en: 'All pieces', ar: 'كل القطع' },
   'home.materials.title': {
     en: 'Vegetable-tanned hides, brass that patinas, thread that holds',
     ar: 'جلود مدبوغة نباتياً، نحاس يكتسب لوناً مع الزمن، وخيط يصمد',
@@ -119,8 +119,12 @@ export const dict: Record<string, { en: string; ar: string }> = {
   // collections
   'collections.title': { en: 'Collections', ar: 'المجموعات' },
   'collections.sub': {
-    en: 'Three lines, six pieces. Each line uses a different weight of hide, so the feel in the hand changes even when the shape looks familiar.',
-    ar: 'ثلاث خطوط وست قطع. كل خط يستخدم وزناً مختلفاً من الجلد، فيتغير الملمس في اليد حتى لو بدا الشكل مألوفاً.',
+    en: 'Each line uses a different weight of hide, so the feel in the hand changes even when the shape looks familiar.',
+    ar: 'كل خط يستخدم وزناً مختلفاً من الجلد، فيتغير الملمس في اليد حتى لو بدا الشكل مألوفاً.',
+  },
+  'collections.empty': {
+    en: 'No collections yet — check back soon.',
+    ar: 'لا توجد مجموعات بعد — عُد قريباً.',
   },
   'collections.also': { en: 'Also in the workshop', ar: 'أيضاً في المشغل' },
   // product page
@@ -163,8 +167,8 @@ export const dict: Record<string, { en: string; ar: string }> = {
   },
   'cart.empty.title': { en: 'Your bag is empty', ar: 'حقيبتك فارغة' },
   'cart.empty.body': {
-    en: 'Six pieces are on the bench right now. Start with the collections.',
-    ar: 'توجد ست قطع على الطاولة الآن. ابدأ من المجموعات.',
+    en: 'Browse the collections to find your piece.',
+    ar: 'تصفح المجموعات لتجد قطعتك.',
   },
   'cart.empty.cta': { en: 'See the collections', ar: 'شاهد المجموعات' },
   'cart.sent.title': { en: 'Your order is with us', ar: 'طلبك وصلنا' },

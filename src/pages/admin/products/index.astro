@@ -39,14 +39,19 @@ const stockOf = (p: (typeof products)[number]) =>
 
   {!dbReady && (
     <p class="admin-alert mt-6">
-      تُعرض القطع الأساسية المكتوبة في الكود لأن قاعدة البيانات غير متصلة. أضف
-      مفاتيح Supabase ونفّذ ملف supabase/schema.sql لتتمكن من التعديل من هنا.
+      قاعدة البيانات غير متصلة، لذلك لا توجد منتجات للعرض. أضف مفاتيح Supabase
+      ونفّذ ملف supabase/schema.sql، ثم أضف منتجاتك من النموذج بالأسفل.
     </p>
   )}
   {saved && <p class="admin-ok mt-6">تم الحفظ.</p>}
   {errorText && <p role="alert" class="admin-alert mt-6">{errorText}</p>}
 
   <ul class="mt-8 space-y-3">
+    {products.length === 0 && (
+      <li class="admin-card text-sm text-stone">
+        لا توجد منتجات بعد. أضف قطعتك الأولى من النموذج بالأسفل (يتطلب اتصال قاعدة البيانات).
+      </li>
+    )}
     {products.map((p) => (
       <li class="admin-row !p-3">
         {p.images[0] ? (
@@ -154,14 +159,11 @@ const stockOf = (p: (typeof products)[number]) =>
     </section>
   ) : (
     <section class="admin-card mt-10">
-      <h2 class="admin-section-title">نقل القطع الأساسية إلى قاعدة البيانات</h2>
+      <h2 class="admin-section-title">توصيل قاعدة البيانات أولاً</h2>
       <p class="admin-section-sub">
-        انسخ المجموعات الثلاث والقطع الست المرفقة مع الكود إلى قاعدة البيانات،
-        وبعدها يمكنك تعديل كل شيء من هذه اللوحة.
+        أضف مفاتيح Supabase إلى متغيرات البيئة ونفّذ ملف supabase/schema.sql،
+        ثم ستتمكن من إضافة المنتجات من النموذج أعلاه.
       </p>
-      <form method="post" action="/api/admin/seed" class="mt-5">
-        <button type="submit" class="admin-btn">نقل إلى قاعدة البيانات</button>
-      </form>
     </section>
   )}
 </Admin>

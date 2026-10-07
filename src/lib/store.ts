@@ -6,8 +6,8 @@ import {
 } from '../data/catalog';
 
 // The storefront reads through here. If Supabase is configured and holds rows,
-// those rows win. Otherwise the starter catalogue in src/data/catalog.ts is used,
-// so the site always renders something real.
+// those rows win. Otherwise an empty catalogue is returned, so pages render
+// their empty states instead of demo content.
 
 interface CollectionRow {
   id: string;

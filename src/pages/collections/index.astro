@@ -23,6 +23,11 @@ const items = collections.map((c, i) => ({ ...c, count: counts[i] }));
   </section>
 
   <div class="mx-auto max-w-6xl px-5 pt-14 sm:px-8">
+    {items.length === 0 && (
+      <p data-i18n="collections.empty" class="border-t border-espresso/10 py-10 text-stone">
+        No collections yet — check back soon.
+      </p>
+    )}
     {
       items.map((c, i) => (
         <a

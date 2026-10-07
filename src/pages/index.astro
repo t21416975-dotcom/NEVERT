@@ -13,13 +13,8 @@ const [collections, products] = await Promise.all([
 ]);
 const featured = products.filter((p) => p.featured).slice(0, 4);
 // Hero rotates through the featured pieces; falls back to all products.
-const heroSlides = (featured.length > 0 ? featured : products.slice(0, 4)).map((p) => ({
-  src: p.images[0],
-  altEn: `${p.name} — handcrafted leather bag`,
-  altAr: `${p.name_ar || p.name} — حقيبة جلد يدوية`,
-}));
-// Demo lifestyle slides: workshop atmosphere until real photography lands.
-heroSlides.push(
+// The two workshop-atmosphere slides only show while the catalogue is empty.
+const demoSlides = [
   {
     src: 'https://picsum.photos/seed/nevert-craft/1600/1100',
     altEn: 'Leather craftsmanship in the NEVERT workshop',
@@ -30,7 +25,14 @@ heroSlides.push(
     altEn: 'Hand-stitched leather detail',
     altAr: 'تفاصيل جلد مخيط يدوياً',
   },
-);
+];
+const productSlides = (featured.length > 0 ? featured : products.slice(0, 4)).map((p) => ({
+  src: p.images[0],
+  altEn: `${p.name} — handcrafted leather bag`,
+  altAr: `${p.name_ar || p.name} — حقيبة جلد يدوية`,
+}));
+const heroSlides = [...productSlides, ...(productSlides.length === 0 ? demoSlides : [])];
+const minPrice = products.length > 0 ? Math.min(...products.map((p) => p.price)) : 0;
 ---
 
 <Base title="NEVERT — Handcrafted bags, made one at a time">
@@ -106,6 +108,7 @@ heroSlides.push(
   </section>
 
   <!-- Collections -->
+  {collections.length > 0 && (
   <section class="mx-auto max-w-6xl px-5 pt-24 sm:px-8">
     <h2 class="font-display text-3xl text-espresso sm:text-4xl"><span data-i18n="home.collections">Collections</span></h2>
     <div class="mt-10 grid gap-x-6 gap-y-12 sm:grid-cols-3">
@@ -133,8 +136,10 @@ heroSlides.push(
       }
     </div>
   </section>
+  )}
 
   <!-- Featured pieces -->
+  {featured.length > 0 && (
   <section class="mx-auto max-w-6xl px-5 pt-24 sm:px-8">
     <div class="flex flex-wrap items-baseline justify-between gap-3">
       <h2 class="font-display text-3xl text-espresso sm:text-4xl">
@@ -144,7 +149,7 @@ heroSlides.push(
         href="/collections"
         class="text-sm text-stone underline decoration-stone/30 underline-offset-4 hover:text-cognac"
       >
-        <span data-i18n="home.all">All six pieces</span>
+        <span data-i18n="home.all">All pieces</span>
       </a>
     </div>
 
@@ -152,6 +157,7 @@ heroSlides.push(
       {featured.map((p) => <ProductCard product={p} />)}
     </div>
   </section>
+  )}
 
   <!-- Materials: the one wide, quiet statement -->
   <section class="mt-24 bg-linen/60 px-5 py-20 sm:px-8">
@@ -215,10 +221,12 @@ heroSlides.push(
         </p>
       </li>
     </ol>
+    {products.length > 0 && (
     <p class="mt-10 text-sm text-stone">
       <span data-i18n="home.from">Pieces start at</span>{' '}
-      <span data-l10n-price={Math.min(...products.map((p) => p.price))}>{formatPrice(Math.min(...products.map((p) => p.price)))}</span>.
+      <span data-l10n-price={minPrice}>{formatPrice(minPrice)}</span>.
     </p>
+    )}
   </section>
 
   <Footer slot="footer" />
