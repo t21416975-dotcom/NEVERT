@@ -1,0 +1,117 @@
+---
+import Admin from '../../layouts/Admin.astro';
+import ImageUploader from '../../components/admin/ImageUploader.astro';
+import { listHeroSlidesAdmin, ordersReady } from '../../lib/admin-data';
+
+const slides = await listHeroSlidesAdmin();
+const admin = Astro.locals.admin;
+const saved = Astro.url.searchParams.get('saved');
+const error = Astro.url.searchParams.get('error');
+const dbReady = ordersReady();
+---
+
+<Admin title="صور الرئيسية — لوحة تحكم NEVERT" email={admin?.email}>
+  <div class="flex flex-wrap items-end justify-between gap-3">
+    <div>
+      <h1 class="text-3xl text-espresso">صور الصفحة الرئيسية</h1>
+      <p class="mt-2 max-w-lg text-sm leading-relaxed text-stone">
+        هذه الصور تدور في الواجهة الرئيسية للموقع. ارفع من جهازك أو الصق رابطاً
+        مباشراً — بدون تعديل الكود. لو القائمة فارغة ستظهر صور المنتجات تلقائياً.
+      </p>
+    </div>
+    {dbReady && slides.length > 0 && <a href="#new" class="admin-btn">＋ إضافة صورة</a>}
+  </div>
+
+  {!dbReady && (
+    <p class="admin-alert mt-6">
+      قاعدة البيانات غير متصلة. أضف مفاتيح Supabase ونفّذ ملفات
+      <span class="latin"> supabase/schema.sql </span> و
+      <span class="latin"> supabase/hero_slides.sql</span> أولاً.
+    </p>
+  )}
+  {saved && <p class="admin-ok mt-6">تم الحفظ.</p>}
+  {error && <p role="alert" class="admin-alert mt-6">تعذّر الحفظ، حاول مرة أخرى.</p>}
+
+  {slides.length === 0 ? (
+    <p class="admin-card mt-8 text-sm text-stone">
+      لا توجد صور مخصصة بعد — الموقع يعرض صور المنتجات تلقائياً. أضف صورتك الأولى بالأسفل.
+    </p>
+  ) : (
+    <ul class="mt-8 space-y-3">
+      {slides.map((s, i) => (
+        <li class={`admin-row !p-3 ${s.active ? '' : 'opacity-60'}`}>
+          <img
+            src={s.image}
+            alt=""
+            width="120"
+            height="75"
+            class="h-16 w-24 shrink-0 rounded-xl object-cover"
+          />
+          <div class="min-w-0 flex-1">
+            <p class="truncate text-sm text-espresso" dir="auto">
+              {s.alt_ar || s.alt_en || 'بدون وصف'}
+            </p>
+            <p class="mt-0.5 text-xs text-stone">
+              شريحة {i + 1} · {s.active ? 'ظاهرة في الموقع' : 'مخفية'}
+            </p>
+          </div>
+          <div class="flex shrink-0 items-center gap-1.5">
+            <form method="post" action="/api/admin/hero/move">
+              <input type="hidden" name="id" value={s.id} />
+              <input type="hidden" name="dir" value="-1" />
+              <button type="submit" disabled={i === 0} aria-label="تحريك لأعلى" title="تحريك لأعلى" class="flex h-8 w-8 items-center justify-center rounded-lg border border-espresso/15 text-stone transition-colors hover:border-cognac hover:text-cognac disabled:opacity-30">
+                ↑
+              </button>
+            </form>
+            <form method="post" action="/api/admin/hero/move">
+              <input type="hidden" name="id" value={s.id} />
+              <input type="hidden" name="dir" value="1" />
+              <button type="submit" disabled={i === slides.length - 1} aria-label="تحريك لأسفل" title="تحريك لأسفل" class="flex h-8 w-8 items-center justify-center rounded-lg border border-espresso/15 text-stone transition-colors hover:border-cognac hover:text-cognac disabled:opacity-30">
+                ↓
+              </button>
+            </form>
+            <form method="post" action="/api/admin/hero/toggle">
+              <input type="hidden" name="id" value={s.id} />
+              <input type="hidden" name="active" value={s.active ? 'false' : 'true'} />
+              <button type="submit" title={s.active ? 'إخفاء من الموقع' : 'إظهار في الموقع'} class="rounded-lg border border-espresso/15 px-3 py-1.5 text-xs text-stone transition-colors hover:border-cognac hover:text-cognac">
+                {s.active ? 'إخفاء' : 'إظهار'}
+              </button>
+            </form>
+            <form method="post" action="/api/admin/hero/delete">
+              <input type="hidden" name="id" value={s.id} />
+              <button type="submit" aria-label="حذف الصورة" title="حذف الصورة" class="flex h-8 w-8 items-center justify-center rounded-lg text-stone transition-colors hover:text-red-700">
+                ✕
+              </button>
+            </form>
+          </div>
+        </li>
+      ))}
+    </ul>
+  )}
+
+  {dbReady && (
+    <section id="new" class="admin-card mt-10 scroll-mt-32">
+      <h2 class="admin-section-title">إضافة صورة جديدة</h2>
+      <p class="admin-section-sub">ارفع صورة عريضة (مثل 1600×1100) لتملأ الشاشة بشكل جميل.</p>
+      <form method="post" action="/api/admin/hero/save" class="mt-6 grid gap-5">
+        <div>
+          <span class="admin-label">الصورة *</span>
+          <ImageUploader name="image" images={[]} single prefix="hero" />
+        </div>
+        <div class="grid gap-5 sm:grid-cols-2">
+          <div>
+            <label for="alt_en" class="admin-label">وصف الصورة (إنجليزي)</label>
+            <input id="alt_en" name="alt_en" placeholder="Leather craftsmanship" class="admin-input" />
+          </div>
+          <div>
+            <label for="alt_ar" class="admin-label">وصف الصورة (عربي)</label>
+            <input id="alt_ar" name="alt_ar" placeholder="حرفة الجلود" class="admin-input" />
+          </div>
+        </div>
+        <div>
+          <button type="submit" class="admin-btn">إضافة الصورة</button>
+        </div>
+      </form>
+    </section>
+  )}
+</Admin>

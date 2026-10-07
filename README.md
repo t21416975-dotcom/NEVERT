@@ -27,12 +27,17 @@ block at the end is idempotent and fixes it.
 2. In **Settings → Environment Variables** add the four variables from
    `.env.example` (`PUBLIC_SUPABASE_URL`, `PUBLIC_SUPABASE_ANON_KEY`,
    `SUPABASE_SERVICE_ROLE_KEY`, `PUBLIC_WHATSAPP_NUMBER`), then **Deploy**.
-3. In the Supabase SQL editor run `supabase/schema.sql`, then
-   `supabase/i18n.sql` (Arabic catalogue columns), then `supabase/admin.sql`
+3. In the Supabase SQL editor run, in order: `supabase/schema.sql`
+   (catalogue + orders), `supabase/i18n.sql` (Arabic catalogue columns),
+   `supabase/storage.sql` (public bucket for uploaded photos),
+   `supabase/hero_slides.sql` (homepage slideshow), then `supabase/admin.sql`
    (after setting the admin email/password at the top of the file).
 4. Sign in at `/admin/login`, add collections, then add products — the
-   storefront reads everything from the database. No code catalogue ships
-   with the site, so an empty database means an empty (but working) shop.
+   storefront reads everything from the database. Product photos upload
+   straight from the panel (or paste a direct link). Homepage hero images
+   are managed from **صور الرئيسية** in the panel — no code edits needed.
+   No code catalogue ships with the site, so an empty database means an
+   empty (but working) shop.
 
 ## Running it
 

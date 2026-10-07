@@ -1,6 +1,7 @@
 ---
 import Admin from '../../../layouts/Admin.astro';
 import VariantEditor from '../../../components/admin/VariantEditor.astro';
+import ImageUploader from '../../../components/admin/ImageUploader.astro';
 import { listProducts } from '../../../lib/store';
 import { listCollectionsAdmin, ordersReady } from '../../../lib/admin-data';
 import { formatPrice } from '../../../lib/types';
@@ -144,8 +145,8 @@ const stockOf = (p: (typeof products)[number]) =>
           <legend class="text-sm font-medium text-cognac">③ الصور والألوان</legend>
           <div class="mt-4 grid gap-5">
             <div>
-              <label for="images" class="admin-label">روابط الصور — رابط في كل سطر</label>
-              <textarea id="images" name="images" rows={3} dir="ltr" placeholder="https://…" class="admin-input"></textarea>
+              <span class="admin-label">صور القطعة <span class="text-stone">(الأولى هي الرئيسية في المتجر)</span></span>
+              <ImageUploader name="images" images={[]} prefix="new" />
             </div>
             <div>
               <span class="admin-label">الألوان والمقاسات</span>

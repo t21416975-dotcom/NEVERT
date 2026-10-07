@@ -1,0 +1,188 @@
+---
+/**
+ * Image upload field for the admin panel. Uploads files to Supabase Storage
+ * via /api/admin/upload, shows instant previews, and also accepts pasting a
+ * direct link. The resulting URLs live in a hidden field in the same
+ * newline format the old textarea used, so the backend is untouched.
+ */
+interface Props {
+  /** Form field name: "images" (many, newline-separated) or "cover" (one). */
+  name?: string;
+  images?: string[];
+  /** Single mode replaces the photo instead of appending (collection cover). */
+  single?: boolean;
+  /** Prefix so element IDs never clash when used twice on a page. */
+  prefix?: string;
+}
+
+const { name = 'images', images = [], single = false, prefix = 'img' } = Astro.props;
+const pid = `${prefix}-${name}`;
+---
+
+<div data-uploader data-single={single ? 'true' : 'false'}>
+  <input type="hidden" name={name} data-urls value={images.join('\n')} />
+
+  <div data-previews class="flex flex-wrap gap-3">
+    {images.map((src) => (
+      <div data-preview={src} class="relative h-24 w-20 shrink-0 overflow-hidden rounded-xl border border-espresso/15 bg-linen">
+        <img src={src} alt="" loading="lazy" width="160" height="192" class="h-full w-full object-cover" />
+        <button
+          type="button"
+          data-remove
+          aria-label="حذف هذه الصورة"
+          title="حذف هذه الصورة"
+          class="absolute left-1 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-espresso/70 text-xs text-porcelain transition-colors hover:bg-red-700"
+        >
+          ✕
+        </button>
+      </div>
+    ))}
+  </div>
+  <p data-empty-hint class="text-xs text-stone" hidden={images.length > 0}>لا توجد صور بعد — ارفع من جهازك أو الصق رابطاً مباشراً.</p>
+
+  <div class="mt-3 flex flex-wrap items-center gap-2">
+    <label
+      for={`${pid}-file`}
+      data-upload-label
+      class="admin-btn-ghost cursor-pointer !px-4 !py-2.5 text-xs"
+    >
+      <span data-upload-text>＋ رفع من الجهاز</span>
+      <input
+        id={`${pid}-file`}
+        data-file
+        type="file"
+        accept="image/*"
+        multiple={!single}
+        class="sr-only"
+      />
+    </label>
+    <input
+      data-link
+      dir="ltr"
+      placeholder="أو الصق رابط مباشر https://…"
+      class="admin-input !mt-0 min-w-[12rem] flex-1 !py-2.5 text-xs"
+    />
+    <button type="button" data-add-link class="admin-btn !px-4 !py-2.5 text-xs">إضافة الرابط</button>
+  </div>
+  <p data-status role="status" class="admin-hint"></p>
+</div>
+
+<script>
+  document.querySelectorAll('[data-uploader]').forEach((box) => {
+    const single = box.getAttribute('data-single') === 'true';
+    const urlsInput = box.querySelector<HTMLInputElement>('[data-urls]')!;
+    const previews = box.querySelector('[data-previews]')!;
+    const hint = box.querySelector('[data-empty-hint]') as HTMLElement | null;
+    const status = box.querySelector('[data-status]')!;
+    const fileInput = box.querySelector<HTMLInputElement>('[data-file]')!;
+    const linkInput = box.querySelector<HTMLInputElement>('[data-link]')!;
+    const uploadText = box.querySelector('[data-upload-text]')!;
+
+    const getUrls = () =>
+      urlsInput.value.split('\n').map((s) => s.trim()).filter(Boolean);
+    const setUrls = (urls: string[]) => {
+      urlsInput.value = urls.join('\n');
+      if (hint) hint.hidden = urls.length > 0;
+    };
+    const say = (msg: string) => {
+      status.textContent = msg;
+    };
+
+    function addPreview(src: string) {
+      const cell = document.createElement('div');
+      cell.setAttribute('data-preview', src);
+      cell.className =
+        'relative h-24 w-20 shrink-0 overflow-hidden rounded-xl border border-espresso/15 bg-linen';
+      const img = document.createElement('img');
+      img.src = src;
+      img.alt = '';
+      img.loading = 'lazy';
+      img.width = 160;
+      img.height = 192;
+      img.className = 'h-full w-full object-cover';
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.setAttribute('data-remove', '');
+      btn.setAttribute('aria-label', 'حذف هذه الصورة');
+      btn.title = 'حذف هذه الصورة';
+      btn.className =
+        'absolute left-1 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-espresso/70 text-xs text-porcelain transition-colors hover:bg-red-700';
+      btn.textContent = '✕';
+      btn.addEventListener('click', () => {
+        cell.remove();
+        setUrls(getUrls().filter((u) => u !== src));
+      });
+      cell.append(img, btn);
+      previews.appendChild(cell);
+    }
+
+    previews.querySelectorAll('[data-remove]').forEach((btn) =>
+      btn.addEventListener('click', () => {
+        const cell = (btn as HTMLElement).closest('[data-preview]');
+        const src = cell?.getAttribute('data-preview') ?? '';
+        cell?.remove();
+        setUrls(getUrls().filter((u) => u !== src));
+      })
+    );
+
+    function addUrls(urls: string[]) {
+      const next = single ? urls.slice(-1) : [...getUrls(), ...urls];
+      if (single) previews.innerHTML = '';
+      const fresh = single ? next : urls;
+      fresh.forEach(addPreview);
+      setUrls(next);
+    }
+
+    fileInput.addEventListener('change', async () => {
+      const files = [...fileInput.files ?? []].filter((f) => f.size > 0);
+      fileInput.value = '';
+      if (files.length === 0) return;
+      const bad = files.find((f) => !f.type.startsWith('image/'));
+      if (bad) {
+        say(`الملف ${bad.name} ليس صورة.`);
+        return;
+      }
+      const big = files.find((f) => f.size > 5 * 1024 * 1024);
+      if (big) {
+        say(`الصورة ${big.name} أكبر من 5MB.`);
+        return;
+      }
+      uploadText.textContent = 'جارٍ الرفع…';
+      say('');
+      try {
+        const form = new FormData();
+        (single ? files.slice(0, 1) : files.slice(0, 10)).forEach((f) =>
+          form.append('files', f, f.name)
+        );
+        const res = await fetch('/api/admin/upload', { method: 'POST', body: form });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data?.error ?? 'تعذر الرفع.');
+        addUrls(data.urls ?? []);
+        say(single ? 'تم رفع الصورة.' : `تم رفع ${data.urls?.length ?? 0} صور.`);
+      } catch (err) {
+        say(err instanceof Error ? err.message : 'تعذر الرفع. حاول مجدداً.');
+      } finally {
+        uploadText.textContent = '＋ رفع من الجهاز';
+      }
+    });
+
+    const addLink = () => {
+      const url = linkInput.value.trim();
+      if (!url) return;
+      if (!/^https?:\/\/.+\..+/.test(url)) {
+        say('الرابط غير صالح — يجب أن يبدأ بـ http(s)://');
+        return;
+      }
+      linkInput.value = '';
+      addUrls([url]);
+      say('');
+    };
+    box.querySelector('[data-add-link]')?.addEventListener('click', addLink);
+    linkInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        addLink();
+      }
+    });
+  });
+</script>

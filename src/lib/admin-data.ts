@@ -227,3 +227,88 @@ export async function listCollectionsAdmin() {
     cover_image: string | null;
   }[];
 }
+
+/* ---------------- Homepage hero slides (/admin/hero) ---------------- */
+
+export interface HeroSlideRow {
+  id: string;
+  image: string;
+  alt_en: string | null;
+  alt_ar: string | null;
+  sort: number;
+  active: boolean;
+}
+
+/** All hero slides for the admin panel, in display order. */
+export async function listHeroSlidesAdmin(): Promise<HeroSlideRow[]> {
+  const db = adminClient();
+  if (!db) return [];
+  const { data, error } = await db
+    .from('hero_slides')
+    .select('*')
+    .order('sort', { ascending: true })
+    .order('created_at', { ascending: true });
+  if (error || !data) return [];
+  return data as HeroSlideRow[];
+}
+
+export async function saveHeroSlide(input: {
+  image: string;
+  alt_en?: string;
+  alt_ar?: string;
+}): Promise<AdminResult> {
+  const db = adminClient();
+  if (!db) return { ok: false, error: 'No database connection.' };
+  if (!input.image) return { ok: false, error: 'Image is required.' };
+  const { data: maxRow } = await db
+    .from('hero_slides')
+    .select('sort')
+    .order('sort', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  const sort = ((maxRow as { sort: number } | null)?.sort ?? -1) + 1;
+  const { data, error } = await db
+    .from('hero_slides')
+    .insert({
+      image: input.image,
+      alt_en: input.alt_en || '',
+      alt_ar: input.alt_ar || '',
+      sort,
+      active: true,
+    })
+    .select('id')
+    .single();
+  if (error || !data) return { ok: false, error: error?.message ?? 'Insert failed.' };
+  return { ok: true, id: data.id as string };
+}
+
+export async function deleteHeroSlide(id: string): Promise<AdminResult> {
+  const db = adminClient();
+  if (!db) return { ok: false, error: 'No database connection.' };
+  const { error } = await db.from('hero_slides').delete().eq('id', id);
+  return error ? { ok: false, error: error.message } : { ok: true };
+}
+
+/** Move a slide up/down by swapping sort with its neighbour. */
+export async function moveHeroSlide(id: string, dir: -1 | 1): Promise<AdminResult> {
+  const db = adminClient();
+  if (!db) return { ok: false, error: 'No database connection.' };
+  const slides = await listHeroSlidesAdmin();
+  const i = slides.findIndex((s) => s.id === id);
+  const j = i + dir;
+  if (i < 0 || j < 0 || j >= slides.length) return { ok: true };
+  const a = slides[i];
+  const b = slides[j];
+  const r1 = await db.from('hero_slides').update({ sort: b.sort }).eq('id', a.id);
+  if (r1.error) return { ok: false, error: r1.error.message };
+  const r2 = await db.from('hero_slides').update({ sort: a.sort }).eq('id', b.id);
+  if (r2.error) return { ok: false, error: r2.error.message };
+  return { ok: true };
+}
+
+export async function toggleHeroSlide(id: string, active: boolean): Promise<AdminResult> {
+  const db = adminClient();
+  if (!db) return { ok: false, error: 'No database connection.' };
+  const { error } = await db.from('hero_slides').update({ active }).eq('id', id);
+  return error ? { ok: false, error: error.message } : { ok: true };
+}

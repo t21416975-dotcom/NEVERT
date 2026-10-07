@@ -152,3 +152,29 @@ export async function productsInCollection(slug: string): Promise<Product[]> {
   const all = await listProducts();
   return all.filter((p) => p.collection === slug);
 }
+
+export interface HeroSlide {
+  image: string;
+  alt_en: string;
+  alt_ar: string;
+}
+
+/** Active homepage hero slides (managed from /admin/hero), in display order. */
+export async function listHeroSlides(): Promise<HeroSlide[]> {
+  const db = publicClient();
+  if (!db) return [];
+  const { data, error } = await db
+    .from('hero_slides')
+    .select('image, alt_en, alt_ar')
+    .eq('active', true)
+    .order('sort', { ascending: true })
+    .order('created_at', { ascending: true });
+  if (error || !data) return [];
+  return (data as { image: string; alt_en: string | null; alt_ar: string | null }[])
+    .filter((r) => r.image)
+    .map((r) => ({
+      image: r.image,
+      alt_en: r.alt_en ?? '',
+      alt_ar: r.alt_ar ?? '',
+    }));
+}

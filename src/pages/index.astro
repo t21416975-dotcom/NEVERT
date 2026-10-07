@@ -4,12 +4,13 @@ import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import ProductCard from '../components/ProductCard.astro';
 import HeroSlideshow from '../components/HeroSlideshow.astro';
-import { listCollections, listProducts } from '../lib/store';
+import { listCollections, listHeroSlides, listProducts } from '../lib/store';
 import { formatPrice } from '../lib/types';
 
-const [collections, products] = await Promise.all([
+const [collections, products, dbSlides] = await Promise.all([
   listCollections(),
   listProducts(),
+  listHeroSlides(),
 ]);
 const featured = products.filter((p) => p.featured).slice(0, 4);
 // Hero rotates through the featured pieces; falls back to all products.
@@ -31,7 +32,16 @@ const productSlides = (featured.length > 0 ? featured : products.slice(0, 4)).ma
   altEn: `${p.name} — handcrafted leather bag`,
   altAr: `${p.name_ar || p.name} — حقيبة جلد يدوية`,
 }));
-const heroSlides = [...productSlides, ...(productSlides.length === 0 ? demoSlides : [])];
+// Priority: admin-managed slides → product photos → workshop fallback.
+const heroSlides = [
+  ...dbSlides.map((s) => ({
+    src: s.image,
+    altEn: s.alt_en || 'NEVERT',
+    altAr: s.alt_ar || 'NEVERT',
+  })),
+  ...productSlides,
+  ...(productSlides.length === 0 ? demoSlides : []),
+];
 const minPrice = products.length > 0 ? Math.min(...products.map((p) => p.price)) : 0;
 ---
 
