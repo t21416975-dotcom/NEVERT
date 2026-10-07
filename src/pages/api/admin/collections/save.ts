@@ -24,6 +24,7 @@ export const POST: APIRoute = async ({ request, redirect }) => {
     description: String(form.get('description') ?? '').trim(),
     description_ar: String(form.get('description_ar') ?? '').trim(),
     cover: String(form.get('cover') ?? '').trim(),
+    featured: form.get('featured') === 'true',
   });
 
   if (!result.ok) {

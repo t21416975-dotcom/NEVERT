@@ -35,6 +35,8 @@ export interface Collection {
   description: string;
   description_ar?: string;
   cover: string;
+  /** Ticked in /admin/collections → shown under "Shop" in the footer. */
+  featured?: boolean;
 }
 
 export interface OrderLine {

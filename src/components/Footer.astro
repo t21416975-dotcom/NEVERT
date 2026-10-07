@@ -1,5 +1,11 @@
 ---
+import { listCollections } from '../lib/store';
+
 const year = new Date().getFullYear();
+// Featured collections (ticked in /admin/collections) appear under "Shop".
+// If none are ticked yet, fall back to all collections so the column is useful.
+const all = await listCollections();
+const shopLinks = (all.some((c) => c.featured) ? all.filter((c) => c.featured) : all).slice(0, 4);
 ---
 
 <footer class="mt-24 border-t border-espresso/10 bg-linen/60">
@@ -17,14 +23,25 @@ const year = new Date().getFullYear();
       </div>
 
       <div class="grid grid-cols-2 gap-x-8 gap-y-6 text-sm sm:gap-x-16">
-        <div>
-          <p data-i18n="footer.shop" class="text-espresso">Shop</p>
-          <ul class="mt-2.5 space-y-1.5 text-stone">
-            <li><a class="hover:text-cognac" href="/collections/atelier" data-en="Atelier" data-ar="الأتيليه">Atelier</a></li>
-            <li><a class="hover:text-cognac" href="/collections/soft-carry" data-en="Soft Carry" data-ar="الحمل الناعم">Soft Carry</a></li>
-            <li><a class="hover:text-cognac" href="/collections/evening" data-en="Evening" data-ar="السهرة">Evening</a></li>
-          </ul>
-        </div>
+        {shopLinks.length > 0 && (
+          <div>
+            <p data-i18n="footer.shop" class="text-espresso">Shop</p>
+            <ul class="mt-2.5 space-y-1.5 text-stone">
+              {shopLinks.map((c) => (
+                <li>
+                  <a
+                    class="hover:text-cognac"
+                    href={`/collections/${c.slug}`}
+                    data-en={c.name}
+                    data-ar={c.name_ar || c.name}
+                  >
+                    {c.name}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
 
         <div>
           <p data-i18n="footer.questions" class="text-espresso">Questions</p>

@@ -7,6 +7,7 @@ create table if not exists collections (
   tagline text,
   description text,
   cover_image text,
+  featured boolean not null default false,
   created_at timestamptz not null default now()
 );
 

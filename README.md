@@ -30,7 +30,9 @@ block at the end is idempotent and fixes it.
 3. In the Supabase SQL editor run, in order: `supabase/schema.sql`
    (catalogue + orders), `supabase/i18n.sql` (Arabic catalogue columns),
    `supabase/storage.sql` (public bucket for uploaded photos),
-   `supabase/hero_slides.sql` (homepage slideshow), then `supabase/admin.sql`
+   `supabase/hero_slides.sql` (homepage slideshow),
+   `supabase/collections_featured.sql` (footer collections), then
+   `supabase/admin.sql`
    (after setting the admin email/password at the top of the file).
 4. Sign in at `/admin/login`, add collections, then add products — the
    storefront reads everything from the database. Product photos upload

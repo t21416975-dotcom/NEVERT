@@ -19,6 +19,7 @@ interface CollectionRow {
   description: string | null;
   description_ar?: string | null;
   cover_image: string | null;
+  featured?: boolean | null;
 }
 
 interface ProductRow {
@@ -55,6 +56,7 @@ const toCollection = (r: CollectionRow): Collection => ({
   description: r.description ?? '',
   description_ar: r.description_ar ?? undefined,
   cover: r.cover_image ?? '',
+  featured: Boolean(r.featured),
 });
 
 const toVariant = (r: VariantRow): Variant => ({

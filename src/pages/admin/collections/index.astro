@@ -54,7 +54,10 @@ for (const c of shopCollections) {
             <div class="sm:col-span-2 flex flex-wrap items-center gap-4">
               {c.cover && <img src={c.cover} alt="" width="120" height="68" class="h-14 w-24 rounded-xl object-cover" />}
               <div>
-                <p class="text-lg text-espresso">{c.name_ar ? `${c.name_ar} · ${c.name}` : c.name}</p>
+                <p class="text-lg text-espresso">
+                  {c.name_ar ? `${c.name_ar} · ${c.name}` : c.name}
+                  {c.featured && <span class="mr-2 rounded bg-cognac/10 px-2 py-0.5 text-xs text-cognac">★ في الفوتر</span>}
+                </p>
                 <p class="mt-0.5 text-xs text-stone">
                   {piecesLabel(counts.get(c.slug) ?? 0)} · <span class="latin">/collections/{c.slug}</span>
                 </p>
@@ -91,6 +94,10 @@ for (const c of shopCollections) {
             <div class="sm:col-span-2">
               <label for={`description_ar-${c.id}`} class="admin-label">الوصف (عربي)</label>
               <textarea id={`description_ar-${c.id}`} name="description_ar" rows={2} class="admin-input">{c.description_ar ?? ''}</textarea>
+            </div>
+            <div class="flex items-center gap-3 rounded-xl bg-linen/60 px-4">
+              <input id={`featured-${c.id}`} name="featured" type="checkbox" value="true" checked={c.featured} class="h-4 w-4 accent-[#A67B4F]" />
+              <label for={`featured-${c.id}`} class="text-sm text-espresso">إظهار في فوتر المتجر</label>
             </div>
             <div class="sm:col-span-2">
               <button type="submit" class="admin-btn">حفظ المجموعة</button>
@@ -144,6 +151,10 @@ for (const c of shopCollections) {
         <div class="sm:col-span-2">
           <label for="new-description_ar" class="admin-label">الوصف (عربي)</label>
           <textarea id="new-description_ar" name="description_ar" rows={2} class="admin-input"></textarea>
+        </div>
+        <div class="flex items-center gap-3 rounded-xl bg-linen/60 px-4">
+          <input id="new-featured" name="featured" type="checkbox" value="true" class="h-4 w-4 accent-[#A67B4F]" />
+          <label for="new-featured" class="text-sm text-espresso">إظهار في فوتر المتجر</label>
         </div>
         <div class="sm:col-span-2">
           <button type="submit" class="admin-btn">إضافة المجموعة</button>

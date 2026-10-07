@@ -174,6 +174,7 @@ export async function saveCollection(input: {
   description: string;
   description_ar?: string;
   cover: string;
+  featured?: boolean;
 }): Promise<AdminResult> {
   const db = adminClient();
   if (!db) return { ok: false, error: 'No database connection.' };
@@ -186,6 +187,7 @@ export async function saveCollection(input: {
     description: input.description,
     description_ar: input.description_ar || null,
     cover_image: input.cover,
+    featured: Boolean(input.featured),
   };
   if (input.id) {
     const { error } = await db.from('collections').update(row).eq('id', input.id);
@@ -225,6 +227,7 @@ export async function listCollectionsAdmin() {
     description: string | null;
     description_ar: string | null;
     cover_image: string | null;
+    featured: boolean | null;
   }[];
 }
 
