@@ -139,6 +139,8 @@ const sizeHints = ['Small', 'Medium', 'Large', 'One Size'];
   };
 
   document.querySelectorAll('[data-variant-editor]').forEach((editor) => {
+    if ((editor as HTMLElement).dataset.bound === '1') return;
+    (editor as HTMLElement).dataset.bound = '1';
     const list = editor.querySelector('[data-variant-rows]')!;
     const tpl = editor.querySelector<HTMLTemplateElement>('[data-variant-template]')!;
     const err = editor.querySelector('[data-variant-error]') as HTMLElement | null;

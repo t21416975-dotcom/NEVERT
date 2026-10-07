@@ -69,6 +69,8 @@ const pid = `${prefix}-${name}`;
 
 <script>
   document.querySelectorAll('[data-uploader]').forEach((box) => {
+    if ((box as HTMLElement).dataset.bound === '1') return;
+    (box as HTMLElement).dataset.bound = '1';
     const single = box.getAttribute('data-single') === 'true';
     const urlsInput = box.querySelector<HTMLInputElement>('[data-urls]')!;
     const previews = box.querySelector('[data-previews]')!;

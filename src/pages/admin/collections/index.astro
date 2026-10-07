@@ -1,5 +1,6 @@
 ---
 import Admin from '../../../layouts/Admin.astro';
+import ImageUploader from '../../../components/admin/ImageUploader.astro';
 import { listCollectionsAdmin, ordersReady } from '../../../lib/admin-data';
 import { listCollections, productsInCollection } from '../../../lib/store';
 import { piecesLabel } from '../../../lib/labels';
@@ -72,8 +73,8 @@ for (const c of shopCollections) {
               <input id={`slug-${c.id}`} name="slug" dir="ltr" value={c.slug} class="admin-input" />
             </div>
             <div>
-              <label for={`cover-${c.id}`} class="admin-label">رابط صورة الغلاف</label>
-              <input id={`cover-${c.id}`} name="cover" dir="ltr" value={c.cover} class="admin-input" />
+              <span class="admin-label">صورة الغلاف</span>
+              <ImageUploader name="cover" images={c.cover ? [c.cover] : []} single prefix={`c-${c.id ?? c.slug}`} />
             </div>
             <div>
               <label for={`tagline-${c.id}`} class="admin-label">سطر بجانب الاسم (إنجليزي)</label>
@@ -124,10 +125,10 @@ for (const c of shopCollections) {
           <label for="new-slug" class="admin-label">رابط الصفحة <span class="text-stone">(يُبنى تلقائياً)</span></label>
           <input id="new-slug" name="slug" dir="ltr" class="admin-input" />
         </div>
-        <div>
-          <label for="new-cover" class="admin-label">رابط صورة الغلاف</label>
-          <input id="new-cover" name="cover" dir="ltr" class="admin-input" />
-        </div>
+          <div>
+            <span class="admin-label">صورة الغلاف</span>
+            <ImageUploader name="cover" images={[]} single prefix="c-new" />
+          </div>
         <div>
           <label for="new-tagline" class="admin-label">سطر بجانب الاسم (إنجليزي)</label>
           <input id="new-tagline" name="tagline" class="admin-input" />
