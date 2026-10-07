@@ -11,22 +11,29 @@ interface Props {
 const {
   title,
   description = 'Handcrafted luxury bags, made one at a time.',
-  lang = 'en',
-  dir = 'ltr',
+  lang: langProp,
+  dir: dirProp,
 } = Astro.props;
+
+// SSR language: explicit prop wins, otherwise the middleware cookie.
+const cookieLang = Astro.cookies.get('nevert-lang')?.value;
+const ssrLang = langProp ?? (Astro.locals as { lang?: string }).lang ?? cookieLang ?? 'en';
+const htmlLang = ssrLang === 'ar' ? 'ar' : 'en';
+const htmlDir: 'ltr' | 'rtl' = dirProp ?? (htmlLang === 'ar' ? 'rtl' : 'ltr');
 ---
 
 <!doctype html>
-<html lang={lang} dir={dir}>
+<html lang={htmlLang} dir={htmlDir}>
   <head>
     <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <script is:inline>
       // Apply the saved language before first paint so there's no flash
       // of LTR/English over the hero while Astro loads.
       try {
         const l = localStorage.getItem('nevert-lang');
-        const ar = l === 'ar';
+        const c = (document.cookie.match(/(?:^|; )nevert-lang=(ar|en)/) || [])[1];
+        const ar = l === 'ar' || (!l && c === 'ar');
         document.documentElement.lang = ar ? 'ar' : 'en';
         document.documentElement.dir = ar ? 'rtl' : 'ltr';
       } catch (e) {}
@@ -54,7 +61,7 @@ const {
         },
         { threshold: 0.12 }
       );
-            document.querySelectorAll('.reveal').forEach((el) => io.observe(el));
+      document.querySelectorAll('.reveal').forEach((el) => io.observe(el));
     </script>
     <script>
       import { applyLang, getStoredLang } from '../lib/i18n';

@@ -1,12 +1,11 @@
 import { useEffect, useState } from 'react';
-import { dict, getStoredLang, setLang, type Lang } from '../lib/i18n';
+import { getStoredLang, setLang, t, type Lang } from '../lib/i18n';
 
 export default function LangToggle() {
   const [lang, setLangState] = useState<Lang>('en');
 
   useEffect(() => {
-    const sync = () => setLangState(getStoredLang());
-    sync();
+    setLangState(getStoredLang());
     const listener = (e: Event) => setLangState((e as CustomEvent<Lang>).detail);
     window.addEventListener('lang:change', listener);
     return () => window.removeEventListener('lang:change', listener);
@@ -19,10 +18,10 @@ export default function LangToggle() {
     <button
       type="button"
       onClick={() => setLang(next)}
-      aria-label={dict[ariaKey].en}
+      aria-label={t(ariaKey, lang)}
       className="header-fg font-body text-sm font-medium tracking-[0.06em] transition-colors duration-500 hover:text-cognac"
     >
-      {lang === 'en' ? 'عربي' : 'EN'}
+      {lang === 'en' ? 'AR' : 'EN'}
     </button>
   );
 }

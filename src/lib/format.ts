@@ -24,7 +24,7 @@ export function orderMessage(
     `مرحبًا ${order.customer_name}، معك ${shopName}.`,
     `بخصوص طلبك رقم #${order.id}:`,
     lines,
-    `الإجمالي: $${order.total}`,
+    `الإجمالي: ${order.total} ج.م`,
     'نأكد معك اللون وعنوان التوصيل؟',
   ].join('\n');
 }
@@ -41,7 +41,8 @@ export function slugify(value: string): string {
     .replace(/^-|-$/g, '');
 }
 
-/** "Cognac #A67B4F | Medium | 4" per line, one variant per line. */
+/** "Cognac / كونياك #A67B4F | Medium / وسط | 4" per line, one variant per line.
+ *  Old single-language lines ("Cognac #A67B4F | Medium | 4") still parse. */
 export function parseVariantLines(input: string): Variant[] {
   return input
     .split('\n')
@@ -50,11 +51,16 @@ export function parseVariantLines(input: string): Variant[] {
     .map((line) => {
       const [namePart, sizePart, stockPart] = line.split('|').map((s) => s.trim());
       const hexMatch = (namePart ?? '').match(/#([0-9a-fA-F]{3,8})\b/);
-      const color = (namePart ?? '').replace(/#[0-9a-fA-F]{3,8}/, '').trim();
+      const colorClean = (namePart ?? '').replace(/#[0-9a-fA-F]{3,8}/, '').trim();
+      // "Cognac / كونياك" — left is EN, right is AR. Single name = EN only.
+      const [colorEn, colorAr] = colorClean.split('/').map((s) => s.trim());
+      const [sizeEn, sizeAr] = (sizePart ?? '').split('/').map((s) => s.trim());
       return {
-        color: color || 'Natural',
+        color: colorEn || 'Natural',
+        color_ar: colorAr || undefined,
         colorHex: hexMatch ? `#${hexMatch[1]}` : '#CCCCCC',
-        size: sizePart || 'Medium',
+        size: sizeEn || 'Medium',
+        size_ar: sizeAr || undefined,
         stock: Number(stockPart) || 0,
       };
     })
@@ -63,6 +69,10 @@ export function parseVariantLines(input: string): Variant[] {
 
 export function variantsToLines(variants: Variant[]): string {
   return variants
-    .map((v) => `${v.color} ${v.colorHex} | ${v.size} | ${v.stock}`)
+    .map((v) => {
+      const color = v.color_ar ? `${v.color} / ${v.color_ar}` : v.color;
+      const size = v.size_ar ? `${v.size} / ${v.size_ar}` : v.size;
+      return `${color} ${v.colorHex} | ${size} | ${v.stock}`;
+    })
     .join('\n');
 }

@@ -1,6 +1,6 @@
 ---
-import { formatPrice, type Product } from '../data/catalog';
-
+import type { Product } from '../lib/types';
+import { formatPrice } from '../lib/types';
 
 interface Props {
   product: Product;
@@ -8,6 +8,11 @@ interface Props {
 
 const { product } = Astro.props;
 const href = `/products/${product.slug}`;
+const nameAr = product.name_ar ?? '';
+const colorsEn = Array.from(new Set(product.variants.map((v) => v.color))).join(' · ');
+const colorsAr = Array.from(
+  new Set(product.variants.map((v) => (v.color_ar?.trim() ? v.color_ar : v.color)))
+).join(' · ');
 ---
 
 <a href={href} class="group block">
@@ -15,6 +20,10 @@ const href = `/products/${product.slug}`;
     <img
       src={product.images[0]}
       alt={product.name}
+      data-en={product.name}
+      data-ar={nameAr || product.name}
+      data-en-attr="alt"
+      data-ar-alt={nameAr || product.name}
       loading="lazy"
       width="900"
       height="1100"
@@ -22,10 +31,10 @@ const href = `/products/${product.slug}`;
     />
   </div>
   <div class="mt-4 flex items-baseline justify-between gap-4">
-    <h3 class="font-display text-lg text-espresso">{product.name}</h3>
-    <p class="text-sm tabular-nums text-stone">{formatPrice(product.price)}</p>
+    <h3 class="font-display text-lg text-espresso" data-en={product.name} data-ar={nameAr || product.name}>{product.name}</h3>
+    <p class="text-sm tabular-nums text-stone" data-l10n-price={product.price}>{formatPrice(product.price)}</p>
   </div>
-  <p class="mt-1 text-xs text-stone">
-    {Array.from(new Set(product.variants.map((v) => v.color))).join(' · ')}
+  <p class="mt-1 text-xs text-stone" data-en={colorsEn} data-ar={colorsAr}>
+    {colorsEn}
   </p>
 </a>

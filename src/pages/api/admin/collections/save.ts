@@ -17,9 +17,12 @@ export const POST: APIRoute = async ({ request, redirect }) => {
   const result = await saveCollection({
     id,
     name,
+    name_ar: String(form.get('name_ar') ?? '').trim(),
     slug,
     tagline: String(form.get('tagline') ?? '').trim(),
+    tagline_ar: String(form.get('tagline_ar') ?? '').trim(),
     description: String(form.get('description') ?? '').trim(),
+    description_ar: String(form.get('description_ar') ?? '').trim(),
     cover: String(form.get('cover') ?? '').trim(),
   });
 

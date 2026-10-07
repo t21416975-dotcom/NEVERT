@@ -23,14 +23,69 @@
 }
 
 @layer components {
-  /* Smooth fade for the main chrome while the label swap runs */
+  /* ---- Admin kit: one shared look for every dashboard form ---- */
+  .admin-card {
+    @apply rounded-2xl border border-espresso/10 bg-white/70 p-5 shadow-[0_1px_2px_rgb(43_38_32/0.05)] sm:p-7;
+  }
+  .admin-section-title {
+    @apply text-xl text-espresso;
+  }
+  .admin-section-sub {
+    @apply mt-1 text-sm leading-relaxed text-stone;
+  }
+  .admin-label {
+    @apply block text-sm font-normal text-espresso;
+  }
+  .admin-input {
+    @apply mt-2 w-full rounded-xl border border-espresso/20 bg-porcelain px-4 py-3 text-sm text-espresso outline-none transition-colors placeholder:text-stone/60 focus:border-cognac focus:ring-2 focus:ring-cognac/20;
+  }
+  .admin-hint {
+    @apply mt-2 text-xs leading-relaxed text-stone;
+  }
+  .admin-btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl bg-espresso px-6 py-3 text-sm text-porcelain transition-colors hover:bg-cognac disabled:cursor-not-allowed disabled:opacity-50;
+  }
+  .admin-btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl border border-espresso/20 px-6 py-3 text-sm text-espresso transition-colors hover:border-cognac hover:text-cognac;
+  }
+  .admin-alert {
+    @apply rounded-xl border border-cognac/40 bg-cognac/5 px-4 py-3 text-sm leading-relaxed text-espresso;
+  }
+  .admin-ok {
+    @apply rounded-xl border border-espresso/15 bg-linen/60 px-4 py-3 text-sm text-espresso;
+  }
+  .admin-pill {
+    @apply inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-normal;
+  }
+  .admin-filter {
+    @apply rounded-full border border-espresso/15 px-4 py-1.5 text-sm text-stone transition-colors hover:border-cognac hover:text-cognac;
+  }
+  .admin-filter-active {
+    @apply rounded-full bg-espresso px-4 py-1.5 text-sm text-porcelain;
+  }
+  .admin-row {
+    @apply flex items-center gap-4 rounded-2xl border border-espresso/10 bg-white/70 p-4 transition-colors hover:border-cognac/40;
+  }
+
+  /* Smooth fade for the chrome while the label swap runs.
+     Header included so the nav doesn't jump while main cross-fades. */
   main,
-  footer {
-    transition: opacity 0.15s ease;
+  footer,
+  .site-header {
+    transition: opacity 0.18s ease, transform 0.18s ease, filter 0.18s ease;
   }
   body.lang-fading main,
-  body.lang-fading footer {
+  body.lang-fading footer,
+  body.lang-fading .site-header {
     opacity: 0;
+    transform: translateY(4px);
+    filter: blur(2px);
+  }
+
+  /* View Transitions (Chrome/Edge/Safari): cross-fade the swapped text. */
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation-duration: 0.18s;
   }
 
   /* Transparent header floating over the full-screen hero.

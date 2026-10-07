@@ -12,7 +12,7 @@ const { title, email, newOrders = 0 } = Astro.props;
 const path = Astro.url.pathname;
 
 const nav = [
-  { href: '/admin', label: 'الطلبات', match: /^\/admin(\/orders)?(\/.*)?$/ },
+  { href: '/admin', label: 'الطلبات', match: /^\/admin(\/orders)?(\/.*)?$/, badge: newOrders },
   { href: '/admin/products', label: 'المنتجات', match: /^\/admin\/products/ },
   { href: '/admin/collections', label: 'المجموعات', match: /^\/admin\/collections/ },
 ];
@@ -51,61 +51,70 @@ const nav = [
     </style>
   </head>
   <body class="min-h-screen bg-porcelain text-espresso antialiased">
-    <header class="border-b border-espresso/10 bg-linen/60">
-      <div class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-5 py-4 sm:px-8">
-        <div class="flex items-baseline gap-3">
+    <header class="sticky top-0 z-40 border-b border-espresso/10 bg-porcelain/90 backdrop-blur">
+      <div class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-5 py-3 sm:px-8">
+        <div class="flex items-center gap-4">
           <a href="/admin" class="font-display text-xl tracking-[0.2em] text-espresso">
             NEVERT
           </a>
-          <span class="text-xs text-stone">لوحة التحكم</span>
+          <span class="hidden rounded-full bg-linen px-3 py-1 text-xs text-stone sm:inline">لوحة التحكم</span>
         </div>
-        <div class="flex items-center gap-5 text-sm">
-          {email && <span class="latin hidden text-stone sm:inline">{email}</span>}
-          <a href="/" class="text-espresso hover:text-cognac">عرض المتجر</a>
+        <div class="flex items-center gap-2 sm:gap-3">
+          {email && <span class="latin hidden text-xs text-stone md:inline">{email}</span>}
+          <a href="/admin/products#new" class="admin-btn !px-4 !py-2 text-xs">＋ منتج جديد</a>
+          <a href="/" class="admin-btn-ghost !border-0 !px-3 !py-2 text-xs">عرض المتجر</a>
           <form method="post" action="/api/admin/logout">
             <button
               type="submit"
-              class="text-stone underline decoration-stone/30 underline-offset-4 hover:text-cognac"
+              class="px-2 py-2 text-xs text-stone underline decoration-stone/30 underline-offset-4 hover:text-cognac"
             >
-              تسجيل الخروج
+              خروج
             </button>
           </form>
         </div>
       </div>
-    </header>
-
-    <div class="mx-auto flex max-w-6xl flex-col gap-8 px-5 py-8 sm:px-8 lg:flex-row lg:gap-14">
-      <nav class="lg:w-40 lg:shrink-0" aria-label="أقسام اللوحة">
-        <ul class="flex gap-6 lg:flex-col lg:gap-3">
+      <nav class="mx-auto max-w-6xl px-5 pb-3 sm:px-8" aria-label="أقسام اللوحة">
+        <ul class="flex gap-2">
           {
-            nav.map((item) => (
-              <li>
-                <a
-                  href={item.href}
-                  class:list={[
-                    'text-sm transition-colors hover:text-cognac',
-                    item.match.test(path) ? 'text-cognac' : 'text-espresso',
-                  ]}
-                >
-                  {item.label}
-                  {item.label === 'الطلبات' && newOrders > 0 && (
-                    <span class="latin mr-2 rounded-full bg-cognac px-2 py-0.5 text-xs text-porcelain">
-                      {newOrders}
-                    </span>
-                  )}
-                </a>
-              </li>
-            ))
+            nav.map((item) => {
+              const active = item.match.test(path);
+              return (
+                <li>
+                  <a
+                    href={item.href}
+                    aria-current={active ? 'page' : undefined}
+                    class:list={[
+                      'inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-sm transition-colors',
+                      active
+                        ? 'bg-espresso text-porcelain'
+                        : 'text-stone hover:bg-linen hover:text-espresso',
+                    ]}
+                  >
+                    {item.label}
+                    {(item.badge ?? 0) > 0 && (
+                      <span
+                        class:list={[
+                          'latin rounded-full px-2 py-0.5 text-xs',
+                          active ? 'bg-porcelain/20 text-porcelain' : 'bg-cognac text-porcelain',
+                        ]}
+                      >
+                        {item.badge}
+                      </span>
+                    )}
+                  </a>
+                </li>
+              );
+            })
           }
         </ul>
-        <p class="mt-8 hidden text-xs leading-relaxed text-stone lg:block">
-          مراحل الطلب: {Object.values(orderStatusLabel).join(' ← ')}
-        </p>
       </nav>
+    </header>
 
-      <main class="min-w-0 flex-1">
-        <slot />
-      </main>
-    </div>
+    <main class="mx-auto max-w-6xl px-5 py-8 sm:px-8">
+      <slot />
+      <p class="mt-12 text-center text-xs text-stone">
+        مراحل الطلب: {Object.values(orderStatusLabel).join(' ← ')}
+      </p>
+    </main>
   </body>
 </html>

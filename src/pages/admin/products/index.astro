@@ -1,9 +1,9 @@
 ---
 import Admin from '../../../layouts/Admin.astro';
+import VariantEditor from '../../../components/admin/VariantEditor.astro';
 import { listProducts } from '../../../lib/store';
 import { listCollectionsAdmin, ordersReady } from '../../../lib/admin-data';
 import { formatPrice } from '../../../lib/types';
-import { variantsToLines } from '../../../lib/format';
 import { combinationsLabel, piecesLabel } from '../../../lib/labels';
 
 const [products, dbCollections] = await Promise.all([
@@ -23,208 +23,145 @@ const errorText =
       : error
         ? 'تعذّر الحفظ، حاول مرة أخرى.'
         : '';
+
+const stockOf = (p: (typeof products)[number]) =>
+  p.variants.reduce((n, v) => n + (v.stock ?? 0), 0);
 ---
 
 <Admin title="المنتجات — لوحة تحكم NEVERT" email={admin?.email}>
-  <div class="flex flex-wrap items-baseline justify-between gap-4">
-    <h1 class="text-3xl text-espresso">المنتجات</h1>
-    <p class="text-sm text-stone">{piecesLabel(products.length)} معروضة</p>
+  <div class="flex flex-wrap items-end justify-between gap-4">
+    <div>
+      <h1 class="text-3xl text-espresso">المنتجات</h1>
+      <p class="mt-2 text-sm text-stone">{piecesLabel(products.length)} معروضة · الأسعار بالجنيه المصري</p>
+    </div>
+    {dbReady && <a href="#new" class="admin-btn">＋ إضافة قطعة جديدة</a>}
   </div>
 
-  {
-    !dbReady && (
-      <p class="mt-6 border border-cognac/40 bg-cognac/5 px-4 py-3 text-sm leading-relaxed text-espresso">
-        تُعرض القطع الأساسية المكتوبة في الكود لأن قاعدة البيانات غير متصلة. أضف
-        مفاتيح Supabase ونفّذ ملف supabase/schema.sql لتتمكن من التعديل من هنا.
-      </p>
-    )
-  }
+  {!dbReady && (
+    <p class="admin-alert mt-6">
+      تُعرض القطع الأساسية المكتوبة في الكود لأن قاعدة البيانات غير متصلة. أضف
+      مفاتيح Supabase ونفّذ ملف supabase/schema.sql لتتمكن من التعديل من هنا.
+    </p>
+  )}
+  {saved && <p class="admin-ok mt-6">تم الحفظ.</p>}
+  {errorText && <p role="alert" class="admin-alert mt-6">{errorText}</p>}
 
-  {
-    saved && (
-      <p class="mt-6 border border-espresso/15 bg-linen/60 px-4 py-3 text-sm text-espresso">
-        تم الحفظ.
-      </p>
-    )
-  }
-  {
-    errorText && (
-      <p
-        role="alert"
-        class="mt-6 border border-cognac/40 bg-cognac/5 px-4 py-3 text-sm text-espresso"
-      >
-        {errorText}
-      </p>
-    )
-  }
-
-  <ul class="mt-8 divide-y divide-espresso/10 border-y border-espresso/10">
-    {
-      products.map((p) => (
-        <li class="flex flex-wrap items-center justify-between gap-4 py-4">
-          <div class="flex items-center gap-4">
-            {p.images[0] && (
-              <img
-                src={p.images[0]}
-                alt=""
-                width="64"
-                height="80"
-                class="h-20 w-16 object-cover"
-              />
-            )}
-            <div>
-              <p class="text-espresso">
-                {p.name}
-                {p.featured && <span class="mr-2 text-xs text-cognac">مميزة</span>}
-              </p>
-              <p class="mt-1 text-sm text-stone">
-                {p.collection} · <span class="latin">{formatPrice(p.price)}</span> ·{' '}
-                {combinationsLabel(p.variants.length)}
-              </p>
-            </div>
-          </div>
-          {p.id ? (
-            <a
-              href={`/admin/products/${p.id}`}
-              class="border border-espresso/20 px-4 py-2 text-sm text-espresso transition-colors hover:border-cognac hover:text-cognac"
-            >
-              تعديل
-            </a>
-          ) : (
-            <span class="text-sm text-stone">في الكود</span>
-          )}
-        </li>
-      ))
-    }
+  <ul class="mt-8 space-y-3">
+    {products.map((p) => (
+      <li class="admin-row !p-3">
+        {p.images[0] ? (
+          <img
+            src={p.images[0]}
+            alt=""
+            width="64"
+            height="80"
+            class="h-20 w-16 shrink-0 rounded-xl object-cover"
+          />
+        ) : (
+          <span class="flex h-20 w-16 shrink-0 items-center justify-center rounded-xl bg-linen text-xs text-stone">بدون صورة</span>
+        )}
+        <div class="min-w-0 flex-1">
+          <p class="truncate text-espresso">
+            {p.name_ar ? `${p.name_ar} · ${p.name}` : p.name}
+            {p.featured && <span class="mr-2 text-xs text-cognac">★ مميزة</span>}
+          </p>
+          <p class="mt-1 text-xs text-stone">
+            <span class="latin">{formatPrice(p.price)}</span>
+            {' · '}مخزون {stockOf(p)}
+            {' · '}{combinationsLabel(p.variants.length)}
+            {!p.name_ar && <span class="mr-1 text-cognac">· بدون ترجمة</span>}
+          </p>
+        </div>
+        {p.id ? (
+          <a href={`/admin/products/${p.id}`} class="admin-btn-ghost shrink-0 !px-4 !py-2 text-xs">
+            تعديل
+          </a>
+        ) : (
+          <span class="shrink-0 text-xs text-stone">في الكود</span>
+        )}
+      </li>
+    ))}
   </ul>
 
-  {
-    dbReady ? (
-      <section class="mt-16">
-        <h2 class="text-2xl text-espresso">إضافة قطعة جديدة</h2>
-        <form
-          method="post"
-          action="/api/admin/products/save"
-          class="mt-6 grid gap-5 sm:grid-cols-2"
-        >
-          <div class="sm:col-span-2">
-            <label for="name" class="block text-sm text-espresso">اسم القطعة</label>
-            <input
-              id="name"
-              name="name"
-              required
-              class="mt-2 w-full border border-espresso/20 bg-porcelain px-4 py-3 text-sm outline-none focus:border-cognac"
-            />
+  {dbReady ? (
+    <section id="new" class="admin-card mt-10 scroll-mt-32">
+      <h2 class="admin-section-title">إضافة قطعة جديدة</h2>
+      <p class="admin-section-sub">املأ الإنجليزي main والعربي — لو تركت العربي فارغاً سيظهر الإنجليزي في المتجر.</p>
+      <form method="post" action="/api/admin/products/save" class="mt-6 space-y-7">
+        <fieldset>
+          <legend class="text-sm font-medium text-cognac">① البيانات الأساسية</legend>
+          <div class="mt-4 grid gap-5 sm:grid-cols-2">
+            <div>
+              <label for="name" class="admin-label">اسم القطعة (إنجليزي) *</label>
+              <input id="name" name="name" required placeholder="Saddle Tote" class="admin-input" />
+            </div>
+            <div>
+              <label for="name_ar" class="admin-label">اسم القطعة (عربي)</label>
+              <input id="name_ar" name="name_ar" placeholder="حقيبة السرج" class="admin-input" />
+            </div>
+            <div>
+              <label for="slug" class="admin-label">رابط الصفحة <span class="text-stone">(يُبنى تلقائياً من الاسم)</span></label>
+              <input id="slug" name="slug" dir="ltr" placeholder="saddle-tote" class="admin-input" />
+            </div>
+            <div>
+              <label for="price" class="admin-label">السعر (جنيه مصري) *</label>
+              <input id="price" name="price" type="number" min="0" step="50" required dir="ltr" placeholder="44500" class="admin-input" />
+            </div>
+            <div>
+              <label for="collectionId" class="admin-label">المجموعة</label>
+              <select id="collectionId" name="collectionId" class="admin-input">
+                <option value="">بدون مجموعة</option>
+                {dbCollections.map((c) => <option value={c.id}>{c.name_ar ? `${c.name_ar} · ${c.name}` : c.name}</option>)}
+              </select>
+            </div>
+            <div class="flex items-center gap-3 rounded-xl bg-linen/60 px-4">
+              <input id="featured" name="featured" type="checkbox" value="true" class="h-4 w-4 accent-[#A67B4F]" />
+              <label for="featured" class="text-sm text-espresso">إظهارها في الصفحة الرئيسية</label>
+            </div>
           </div>
-          <div>
-            <label for="slug" class="block text-sm text-espresso">
-              رابط الصفحة <span class="text-stone">(لو تركته فارغًا يُبنى من الاسم)</span>
-            </label>
-            <input
-              id="slug"
-              name="slug"
-              dir="ltr"
-              class="mt-2 w-full border border-espresso/20 bg-porcelain px-4 py-3 text-sm outline-none focus:border-cognac"
-            />
+        </fieldset>
+
+        <fieldset>
+          <legend class="text-sm font-medium text-cognac">② الوصف</legend>
+          <div class="mt-4 grid gap-5 sm:grid-cols-2">
+            <div>
+              <label for="description" class="admin-label">الوصف (إنجليزي)</label>
+              <textarea id="description" name="description" rows={3} class="admin-input"></textarea>
+            </div>
+            <div>
+              <label for="description_ar" class="admin-label">الوصف (عربي)</label>
+              <textarea id="description_ar" name="description_ar" rows={3} class="admin-input"></textarea>
+            </div>
           </div>
-          <div>
-            <label for="price" class="block text-sm text-espresso">السعر (دولار)</label>
-            <input
-              id="price"
-              name="price"
-              type="number"
-              min="0"
-              step="1"
-              required
-              dir="ltr"
-              class="mt-2 w-full border border-espresso/20 bg-porcelain px-4 py-3 text-sm outline-none focus:border-cognac"
-            />
+        </fieldset>
+
+        <fieldset>
+          <legend class="text-sm font-medium text-cognac">③ الصور والألوان</legend>
+          <div class="mt-4 grid gap-5">
+            <div>
+              <label for="images" class="admin-label">روابط الصور — رابط في كل سطر</label>
+              <textarea id="images" name="images" rows={3} dir="ltr" placeholder="https://…" class="admin-input"></textarea>
+            </div>
+            <div>
+              <span class="admin-label">الألوان والمقاسات</span>
+              <VariantEditor prefix="new" />
+            </div>
           </div>
-          <div>
-            <label for="collectionId" class="block text-sm text-espresso">المجموعة</label>
-            <select
-              id="collectionId"
-              name="collectionId"
-              class="mt-2 w-full border border-espresso/20 bg-porcelain px-4 py-3 text-sm outline-none focus:border-cognac"
-            >
-              <option value="">بدون مجموعة</option>
-              {dbCollections.map((c) => <option value={c.id}>{c.name}</option>)}
-            </select>
-          </div>
-          <div class="flex items-center gap-3 sm:pb-3">
-            <input id="featured" name="featured" type="checkbox" value="true" class="h-4 w-4" />
-            <label for="featured" class="text-sm text-espresso">
-              إظهارها في الصفحة الرئيسية
-            </label>
-          </div>
-          <div class="sm:col-span-2">
-            <label for="description" class="block text-sm text-espresso">الوصف</label>
-            <textarea
-              id="description"
-              name="description"
-              rows={3}
-              class="mt-2 w-full border border-espresso/20 bg-porcelain px-4 py-3 text-sm outline-none focus:border-cognac"
-            ></textarea>
-          </div>
-          <div class="sm:col-span-2">
-            <label for="images" class="block text-sm text-espresso">
-              روابط الصور، رابط في كل سطر
-            </label>
-            <textarea
-              id="images"
-              name="images"
-              rows={3}
-              dir="ltr"
-              placeholder="https://..."
-              class="mt-2 w-full border border-espresso/20 bg-porcelain px-4 py-3 text-sm outline-none focus:border-cognac"
-            ></textarea>
-          </div>
-          <div class="sm:col-span-2">
-            <label for="variants" class="block text-sm text-espresso">
-              الألوان والأحجام، تركيبة في كل سطر
-            </label>
-            <textarea
-              id="variants"
-              name="variants"
-              rows={5}
-              dir="ltr"
-              class="mt-2 w-full border border-espresso/20 bg-porcelain px-4 py-3 font-mono text-sm outline-none focus:border-cognac"
-            >{variantsToLines([
-              { color: 'Cognac', colorHex: '#A67B4F', size: 'Medium', stock: 4 },
-            ])}</textarea>
-            <p class="mt-2 text-xs leading-relaxed text-stone">
-              اكتب اسم اللون، ثم كود لونه، ثم الحجم، ثم الكمية المتاحة — مثال:
-              <span class="latin mx-1 rounded bg-linen px-2 py-0.5 font-mono">
-                Cognac #A67B4F | Medium | 4
-              </span>
-            </p>
-          </div>
-          <div class="sm:col-span-2">
-            <button
-              type="submit"
-              class="bg-espresso px-8 py-3.5 text-sm text-porcelain transition-colors hover:bg-cognac"
-            >
-              إضافة القطعة
-            </button>
-          </div>
-        </form>
-      </section>
-    ) : (
-      <section class="mt-16">
-        <h2 class="text-2xl text-espresso">نقل القطع الأساسية إلى قاعدة البيانات</h2>
-        <p class="mt-3 max-w-lg text-sm leading-relaxed text-stone">
-          انسخ المجموعات الثلاث والقطع الست المرفقة مع الكود إلى قاعدة البيانات،
-          وبعدها يمكنك تعديل كل شيء من هذه اللوحة.
-        </p>
-        <form method="post" action="/api/admin/seed" class="mt-5">
-          <button
-            type="submit"
-            class="bg-espresso px-8 py-3.5 text-sm text-porcelain transition-colors hover:bg-cognac"
-          >
-            نقل إلى قاعدة البيانات
-          </button>
-        </form>
-      </section>
-    )
-  }
+        </fieldset>
+
+        <button type="submit" class="admin-btn w-full sm:w-auto">إضافة القطعة</button>
+      </form>
+    </section>
+  ) : (
+    <section class="admin-card mt-10">
+      <h2 class="admin-section-title">نقل القطع الأساسية إلى قاعدة البيانات</h2>
+      <p class="admin-section-sub">
+        انسخ المجموعات الثلاث والقطع الست المرفقة مع الكود إلى قاعدة البيانات،
+        وبعدها يمكنك تعديل كل شيء من هذه اللوحة.
+      </p>
+      <form method="post" action="/api/admin/seed" class="mt-5">
+        <button type="submit" class="admin-btn">نقل إلى قاعدة البيانات</button>
+      </form>
+    </section>
+  )}
 </Admin>

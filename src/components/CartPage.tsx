@@ -1,14 +1,16 @@
 import { useEffect, useState } from 'react';
 import { getCart, setQty, removeItem, clearCart, type CartItem } from '../lib/cart';
+import { useLang } from '../lib/useLang';
 
-const money = (n: number) =>
-  new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    maximumFractionDigits: 0,
-  }).format(n);
+const dispName = (i: CartItem, lang: 'en' | 'ar') =>
+  lang === 'ar' && i.name_ar && i.name_ar.trim() ? i.name_ar : i.name;
+const dispColor = (i: CartItem, lang: 'en' | 'ar') =>
+  lang === 'ar' && i.color_ar && i.color_ar.trim() ? i.color_ar : i.color;
+const dispSize = (i: CartItem, lang: 'en' | 'ar') =>
+  lang === 'ar' && i.size_ar && i.size_ar.trim() ? i.size_ar : i.size;
 
 export default function CartPage({ whatsapp = '' }: { whatsapp?: string }) {
+  const { lang, t, money } = useLang();
   const [items, setItems] = useState<CartItem[]>([]);
   const [ready, setReady] = useState(false);
 
@@ -45,6 +47,7 @@ export default function CartPage({ whatsapp = '' }: { whatsapp?: string }) {
           whatsapp_number: phone,
           city,
           notes,
+          lang,
           items: items.map((i) => ({
             slug: i.slug,
             color: i.color,
@@ -54,28 +57,38 @@ export default function CartPage({ whatsapp = '' }: { whatsapp?: string }) {
         }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data?.error ?? 'We could not send your order.');
+      if (!res.ok) throw new Error(data?.error ?? t('cart.err.send'));
       setOrderId(data.order_id ?? null);
       clearCart();
       setStatus('sent');
     } catch (err) {
       setStatus('error');
-      setError(err instanceof Error ? err.message : 'Something went wrong.');
+      setError(err instanceof Error ? err.message : t('cart.err.generic'));
     }
   }
 
   if (ready && status === 'sent') {
-    const lines = items.map((i) => `${i.name} — ${i.color}, ${i.size} x${i.qty}`);
-    const message = `Hello, I placed order ${orderId ? `#${orderId}` : ''} on the site:\n${lines.join('\n')}`;
+    const lines = items.map(
+      (i) => `${dispName(i, lang)} — ${dispColor(i, lang)}، ${dispSize(i, lang)} × ${i.qty}`
+    );
+    const message =
+      lang === 'ar'
+        ? `مرحباً، أرسلت الطلب ${orderId ? `#${orderId}` : ''} من الموقع:\n${lines.join('\n')}`
+        : `Hello, I placed order ${orderId ? `#${orderId}` : ''} on the site:\n${lines.join('\n')}`;
     return (
       <div className="mx-auto max-w-2xl px-5 py-20 text-center sm:px-8">
         <h1 className="font-display text-3xl text-espresso sm:text-4xl">
-          Your order is with us
+          {t('cart.sent.title')}
         </h1>
         <p className="mt-5 leading-relaxed text-stone">
-          {orderId ? `Order number ${orderId}. ` : ''}
-          We will message {phone || 'you'} on WhatsApp to confirm the colour, the
-          total and delivery.
+          {orderId
+            ? lang === 'ar'
+              ? `رقم الطلب ${orderId}. `
+              : `Order number ${orderId}. `
+            : ''}
+          {lang === 'ar'
+            ? `سنراسل ${phone || 'ك'} على واتساب لتأكيد اللون والمبلغ الإجمالي والتوصيل.`
+            : `We will message ${phone || 'you'} on WhatsApp to confirm the colour, the total and delivery.`}
         </p>
         {whatsapp && (
           <a
@@ -84,7 +97,7 @@ export default function CartPage({ whatsapp = '' }: { whatsapp?: string }) {
             rel="noopener"
             className="mt-8 inline-block bg-espresso px-8 py-3.5 text-sm tracking-[0.08em] text-porcelain transition-colors hover:bg-cognac"
           >
-            Open WhatsApp now
+            {t('cart.wa.open')}
           </a>
         )}
         <p className="mt-8 text-sm text-stone">
@@ -92,7 +105,7 @@ export default function CartPage({ whatsapp = '' }: { whatsapp?: string }) {
             href="/collections"
             className="underline decoration-stone/30 underline-offset-4 hover:text-cognac"
           >
-            Keep looking at the collections
+            {t('cart.sent.keep')}
           </a>
         </p>
       </div>
@@ -103,16 +116,14 @@ export default function CartPage({ whatsapp = '' }: { whatsapp?: string }) {
     return (
       <div className="mx-auto max-w-2xl px-5 py-20 text-center sm:px-8">
         <h1 className="font-display text-3xl text-espresso sm:text-4xl">
-          Your bag is empty
+          {t('cart.empty.title')}
         </h1>
-        <p className="mt-5 leading-relaxed text-stone">
-          Six pieces are on the bench right now. Start with the collections.
-        </p>
+        <p className="mt-5 leading-relaxed text-stone">{t('cart.empty.body')}</p>
         <a
           href="/collections"
           className="mt-8 inline-block bg-espresso px-8 py-3.5 text-sm tracking-[0.08em] text-porcelain transition-colors hover:bg-cognac"
         >
-          See the collections
+          {t('cart.empty.cta')}
         </a>
       </div>
     );
@@ -120,11 +131,8 @@ export default function CartPage({ whatsapp = '' }: { whatsapp?: string }) {
 
   return (
     <div className="mx-auto max-w-6xl px-5 py-12 sm:px-8">
-      <h1 className="font-display text-4xl text-espresso sm:text-5xl">Your bag</h1>
-      <p className="mt-4 max-w-lg leading-relaxed text-stone">
-        Nothing is paid on this site. Send your order and we will confirm the
-        total and delivery with you on WhatsApp.
-      </p>
+      <h1 className="font-display text-4xl text-espresso sm:text-5xl">{t('cart.title')}</h1>
+      <p className="mt-4 max-w-lg leading-relaxed text-stone">{t('cart.sub')}</p>
 
       <div className="mt-12 grid gap-14 lg:grid-cols-[1.2fr_1fr] lg:gap-20">
         <ul className="divide-y divide-espresso/10 border-y border-espresso/10">
@@ -136,7 +144,7 @@ export default function CartPage({ whatsapp = '' }: { whatsapp?: string }) {
               >
                 <img
                   src={i.image}
-                  alt={i.name}
+                  alt={dispName(i, lang)}
                   width="300"
                   height="375"
                   className="aspect-[4/5] w-full object-cover"
@@ -149,14 +157,14 @@ export default function CartPage({ whatsapp = '' }: { whatsapp?: string }) {
                       href={`/products/${i.slug}`}
                       className="font-display text-lg text-espresso hover:text-cognac"
                     >
-                      {i.name}
+                      {dispName(i, lang)}
                     </a>
                     <p className="text-sm tabular-nums text-stone">
                       {money(i.price * i.qty)}
                     </p>
                   </div>
                   <p className="mt-1 text-sm text-stone">
-                    {i.color} · {i.size}
+                    {dispColor(i, lang)} · {dispSize(i, lang)}
                   </p>
                 </div>
                 <div className="mt-4 flex items-center gap-5">
@@ -165,7 +173,7 @@ export default function CartPage({ whatsapp = '' }: { whatsapp?: string }) {
                       type="button"
                       onClick={() => setQty(i.slug, i.color, i.size, i.qty - 1)}
                       className="px-3 py-1.5 text-espresso hover:text-cognac"
-                      aria-label={`Decrease quantity of ${i.name}`}
+                      aria-label={`${t('pa.dec')} ${dispName(i, lang)}`}
                     >
                       −
                     </button>
@@ -176,7 +184,7 @@ export default function CartPage({ whatsapp = '' }: { whatsapp?: string }) {
                       type="button"
                       onClick={() => setQty(i.slug, i.color, i.size, i.qty + 1)}
                       className="px-3 py-1.5 text-espresso hover:text-cognac"
-                      aria-label={`Increase quantity of ${i.name}`}
+                      aria-label={`${t('pa.inc')} ${dispName(i, lang)}`}
                     >
                       +
                     </button>
@@ -186,7 +194,7 @@ export default function CartPage({ whatsapp = '' }: { whatsapp?: string }) {
                     onClick={() => removeItem(i.slug, i.color, i.size)}
                     className="text-sm text-stone underline decoration-stone/30 underline-offset-4 hover:text-cognac"
                   >
-                    Remove
+                    {t('cart.remove')}
                   </button>
                 </div>
               </div>
@@ -195,19 +203,17 @@ export default function CartPage({ whatsapp = '' }: { whatsapp?: string }) {
         </ul>
         <form onSubmit={submit} className="lg:sticky lg:top-28 lg:self-start">
           <div className="flex items-baseline justify-between border-b border-espresso/10 pb-5">
-            <span className="text-espresso">Subtotal</span>
+            <span className="text-espresso">{t('cart.subtotal')}</span>
             <span className="font-display text-2xl tabular-nums text-espresso">
               {money(subtotal)}
             </span>
           </div>
-          <p className="mt-4 text-sm text-stone">
-            Delivery is calculated with you on WhatsApp, based on your city.
-          </p>
+          <p className="mt-4 text-sm text-stone">{t('cart.delivery_note')}</p>
 
           <div className="mt-8 space-y-5">
             <div>
               <label htmlFor="name" className="block text-sm text-espresso">
-                Full name
+                {t('cart.name')}
               </label>
               <input
                 id="name"
@@ -219,7 +225,7 @@ export default function CartPage({ whatsapp = '' }: { whatsapp?: string }) {
             </div>
             <div>
               <label htmlFor="phone" className="block text-sm text-espresso">
-                WhatsApp number
+                {t('cart.phone')}
               </label>
               <input
                 id="phone"
@@ -233,7 +239,7 @@ export default function CartPage({ whatsapp = '' }: { whatsapp?: string }) {
             </div>
             <div>
               <label htmlFor="city" className="block text-sm text-espresso">
-                City and address
+                {t('cart.city')}
               </label>
               <input
                 id="city"
@@ -244,14 +250,14 @@ export default function CartPage({ whatsapp = '' }: { whatsapp?: string }) {
             </div>
             <div>
               <label htmlFor="notes" className="block text-sm text-espresso">
-                Anything we should know
+                {t('cart.notes')}
               </label>
               <textarea
                 id="notes"
                 rows={3}
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                placeholder="Monogram, preferred delivery time, a gift note"
+                placeholder={t('cart.notes_ph')}
                 className="mt-2 w-full border border-espresso/20 bg-porcelain px-4 py-3 text-sm outline-none transition-colors focus:border-cognac"
               />
             </div>
@@ -262,8 +268,7 @@ export default function CartPage({ whatsapp = '' }: { whatsapp?: string }) {
               role="alert"
               className="mt-6 border border-cognac/40 bg-cognac/5 px-4 py-3 text-sm text-espresso"
             >
-              {error} Your bag is still here — try again, or send us a message on
-              WhatsApp.
+              {error} {t('cart.error_suffix')}
             </p>
           )}
 
@@ -272,13 +277,10 @@ export default function CartPage({ whatsapp = '' }: { whatsapp?: string }) {
             disabled={status === 'sending'}
             className="mt-8 w-full bg-espresso px-8 py-4 text-sm tracking-[0.08em] text-porcelain transition-colors hover:bg-cognac disabled:cursor-not-allowed disabled:bg-stone/40"
           >
-            {status === 'sending' ? 'Sending your order' : 'Send order'}
+            {status === 'sending' ? t('cart.sending') : t('cart.send')}
           </button>
-          <p className="mt-3 text-xs text-stone">
-            By sending, you agree to be contacted on WhatsApp about this order.
-          </p>
+          <p className="mt-3 text-xs text-stone">{t('cart.agree')}</p>
         </form>
-
       </div>
     </div>
   );

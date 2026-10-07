@@ -103,15 +103,19 @@ const hero = products.find((p) => p.slug === 'saddle-tote') ?? products[0];
             <div class="overflow-hidden bg-linen">
               <img
                 src={c.cover}
-                alt=""
+                alt={c.name}
+                data-en={c.name}
+                data-ar={c.name_ar || c.name}
+                data-en-attr="alt"
+                data-ar-alt={c.name_ar || c.name}
                 loading="lazy"
                 width="1200"
                 height="900"
                 class="aspect-[4/3] w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.03] motion-reduce:transition-none motion-reduce:group-hover:scale-100"
               />
             </div>
-            <h3 class="mt-4 font-display text-xl text-espresso">{c.name}</h3>
-            <p class="mt-1 text-sm text-stone">{c.tagline}</p>
+            <h3 class="mt-4 font-display text-xl text-espresso" data-en={c.name} data-ar={c.name_ar || c.name}>{c.name}</h3>
+            <p class="mt-1 text-sm text-stone" data-en={c.tagline} data-ar={c.tagline_ar || c.tagline}>{c.tagline}</p>
           </a>
         ))
       }
@@ -200,7 +204,8 @@ const hero = products.find((p) => p.slug === 'saddle-tote') ?? products[0];
       </li>
     </ol>
     <p class="mt-10 text-sm text-stone">
-      <span data-i18n="home.from">Pieces start at</span> {formatPrice(Math.min(...products.map((p) => p.price)))}.
+      <span data-i18n="home.from">Pieces start at</span>{' '}
+      <span data-l10n-price={Math.min(...products.map((p) => p.price))}>{formatPrice(Math.min(...products.map((p) => p.price)))}</span>.
     </p>
   </section>
 

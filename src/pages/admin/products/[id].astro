@@ -1,8 +1,8 @@
 ---
 import Admin from '../../../layouts/Admin.astro';
+import VariantEditor from '../../../components/admin/VariantEditor.astro';
 import { listProducts } from '../../../lib/store';
 import { listCollectionsAdmin } from '../../../lib/admin-data';
-import { variantsToLines } from '../../../lib/format';
 
 const id = Astro.params.id ?? '';
 const [products, dbCollections] = await Promise.all([
@@ -33,177 +33,104 @@ const errorText =
     href="/admin/products"
     class="text-sm text-stone underline decoration-stone/30 underline-offset-4 hover:text-cognac"
   >
-    رجوع إلى المنتجات
+    ← رجوع إلى المنتجات
   </a>
 
-  <h1 class="mt-6 text-3xl text-espresso">{product.name}</h1>
-  <p class="mt-2 text-sm text-stone">
-    صفحتها على المتجر: <span class="latin">/products/{product.slug}</span>
-  </p>
-
-  {
-    saved && (
-      <p class="mt-6 border border-espresso/15 bg-linen/60 px-4 py-3 text-sm text-espresso">
-        تم الحفظ.
+  <div class="mt-4 flex flex-wrap items-center gap-4">
+    {product.images[0] && (
+      <img src={product.images[0]} alt="" width="72" height="90" class="h-20 w-16 rounded-xl object-cover" />
+    )}
+    <div>
+      <h1 class="text-3xl text-espresso">{product.name_ar ?? product.name}</h1>
+      <p class="mt-1 text-sm text-stone">
+        <span class="latin">/products/{product.slug}</span>
+        {!product.name_ar && <span class="mr-2 text-cognac">· بدون ترجمة عربية</span>}
       </p>
-    )
-  }
-  {
-    errorText && (
-      <p
-        role="alert"
-        class="mt-6 border border-cognac/40 bg-cognac/5 px-4 py-3 text-sm text-espresso"
-      >
-        {errorText}
-      </p>
-    )
-  }
+    </div>
+  </div>
 
-  <form
-    method="post"
-    action="/api/admin/products/save"
-    class="mt-10 grid gap-5 sm:grid-cols-2"
-  >
+  {saved && <p class="admin-ok mt-6">تم الحفظ.</p>}
+  {errorText && <p role="alert" class="admin-alert mt-6">{errorText}</p>}
+
+  <form method="post" action="/api/admin/products/save" class="admin-card mt-8 space-y-7">
     <input type="hidden" name="id" value={product.id} />
 
-    <div class="sm:col-span-2">
-      <label for="name" class="block text-sm text-espresso">اسم القطعة</label>
-      <input
-        id="name"
-        name="name"
-        required
-        value={product.name}
-        class="mt-2 w-full border border-espresso/20 bg-porcelain px-4 py-3 text-sm outline-none focus:border-cognac"
-      />
-    </div>
+    <fieldset>
+      <legend class="text-sm font-medium text-cognac">① البيانات الأساسية</legend>
+      <div class="mt-4 grid gap-5 sm:grid-cols-2">
+        <div>
+          <label for="name" class="admin-label">اسم القطعة (إنجليزي) *</label>
+          <input id="name" name="name" required value={product.name} class="admin-input" />
+        </div>
+        <div>
+          <label for="name_ar" class="admin-label">اسم القطعة (عربي)</label>
+          <input id="name_ar" name="name_ar" value={product.name_ar ?? ''} placeholder="يظهر الإنجليزي لو فارغ" class="admin-input" />
+        </div>
+        <div>
+          <label for="slug" class="admin-label">رابط الصفحة</label>
+          <input id="slug" name="slug" dir="ltr" value={product.slug} class="admin-input" />
+        </div>
+        <div>
+          <label for="price" class="admin-label">السعر (جنيه مصري) *</label>
+          <input id="price" name="price" type="number" min="0" step="50" required dir="ltr" value={product.price} class="admin-input" />
+        </div>
+        <div>
+          <label for="collectionId" class="admin-label">المجموعة</label>
+          <select id="collectionId" name="collectionId" class="admin-input">
+            <option value="">بدون مجموعة</option>
+            {dbCollections.map((c) => (
+              <option value={c.id} selected={c.slug === product.collection}>
+                {c.name_ar ? `${c.name_ar} · ${c.name}` : c.name}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div class="flex items-center gap-3 rounded-xl bg-linen/60 px-4">
+          <input id="featured" name="featured" type="checkbox" value="true" checked={product.featured} class="h-4 w-4 accent-[#A67B4F]" />
+          <label for="featured" class="text-sm text-espresso">إظهارها في الصفحة الرئيسية</label>
+        </div>
+      </div>
+    </fieldset>
 
-    <div>
-      <label for="slug" class="block text-sm text-espresso">رابط الصفحة</label>
-      <input
-        id="slug"
-        name="slug"
-        dir="ltr"
-        value={product.slug}
-        class="mt-2 w-full border border-espresso/20 bg-porcelain px-4 py-3 text-sm outline-none focus:border-cognac"
-      />
-    </div>
+    <fieldset>
+      <legend class="text-sm font-medium text-cognac">② الوصف</legend>
+      <div class="mt-4 grid gap-5 sm:grid-cols-2">
+        <div>
+          <label for="description" class="admin-label">الوصف (إنجليزي)</label>
+          <textarea id="description" name="description" rows={3} class="admin-input">{product.description}</textarea>
+        </div>
+        <div>
+          <label for="description_ar" class="admin-label">الوصف (عربي)</label>
+          <textarea id="description_ar" name="description_ar" rows={3} class="admin-input">{product.description_ar ?? ''}</textarea>
+        </div>
+      </div>
+    </fieldset>
 
-    <div>
-      <label for="price" class="block text-sm text-espresso">السعر (دولار)</label>
-      <input
-        id="price"
-        name="price"
-        type="number"
-        min="0"
-        step="1"
-        required
-        dir="ltr"
-        value={product.price}
-        class="mt-2 w-full border border-espresso/20 bg-porcelain px-4 py-3 text-sm outline-none focus:border-cognac"
-      />
-    </div>
+    <fieldset>
+      <legend class="text-sm font-medium text-cognac">③ الصور والألوان</legend>
+      <div class="mt-4 grid gap-5">
+        <div>
+          <label for="images" class="admin-label">روابط الصور — رابط في كل سطر</label>
+          <textarea id="images" name="images" rows={4} dir="ltr" class="admin-input">{product.images.join('\n')}</textarea>
+        </div>
+        <div>
+          <span class="admin-label">الألوان والمقاسات</span>
+          <VariantEditor variants={product.variants} prefix="edit" />
+        </div>
+      </div>
+    </fieldset>
 
-    <div>
-      <label for="collectionId" class="block text-sm text-espresso">المجموعة</label>
-      <select
-        id="collectionId"
-        name="collectionId"
-        class="mt-2 w-full border border-espresso/20 bg-porcelain px-4 py-3 text-sm outline-none focus:border-cognac"
-      >
-        <option value="">بدون مجموعة</option>
-        {
-          dbCollections.map((c) => (
-            <option value={c.id} selected={c.slug === product.collection}>
-              {c.name}
-            </option>
-          ))
-        }
-      </select>
-    </div>
-
-    <div class="flex items-center gap-3 sm:pb-3">
-      <input
-        id="featured"
-        name="featured"
-        type="checkbox"
-        value="true"
-        checked={product.featured}
-        class="h-4 w-4"
-      />
-      <label for="featured" class="text-sm text-espresso">
-        إظهارها في الصفحة الرئيسية
-      </label>
-    </div>
-    <div class="sm:col-span-2">
-      <label for="description" class="block text-sm text-espresso">الوصف</label>
-      <textarea
-        id="description"
-        name="description"
-        rows={3}
-        class="mt-2 w-full border border-espresso/20 bg-porcelain px-4 py-3 text-sm outline-none focus:border-cognac"
-      >{product.description}</textarea>
-    </div>
-
-    <div class="sm:col-span-2">
-      <label for="images" class="block text-sm text-espresso">
-        روابط الصور، رابط في كل سطر
-      </label>
-      <textarea
-        id="images"
-        name="images"
-        rows={4}
-        dir="ltr"
-        class="mt-2 w-full border border-espresso/20 bg-porcelain px-4 py-3 text-sm outline-none focus:border-cognac"
-      >{product.images.join('\n')}</textarea>
-    </div>
-
-    <div class="sm:col-span-2">
-      <label for="variants" class="block text-sm text-espresso">
-        الألوان والأحجام، تركيبة في كل سطر
-      </label>
-      <textarea
-        id="variants"
-        name="variants"
-        rows={7}
-        dir="ltr"
-        class="mt-2 w-full border border-espresso/20 bg-porcelain px-4 py-3 font-mono text-sm outline-none focus:border-cognac"
-      >{variantsToLines(product.variants)}</textarea>
-      <p class="mt-2 text-xs leading-relaxed text-stone">
-        كل سطر: اسم اللون، كود اللون، الحجم، الكمية المتاحة. أي سطر تحذفه هنا
-        يُحذف من المتجر.
-      </p>
-    </div>
-
-    <div class="flex flex-wrap gap-4 sm:col-span-2">
-      <button
-        type="submit"
-        class="bg-espresso px-8 py-3.5 text-sm text-porcelain transition-colors hover:bg-cognac"
-      >
-        حفظ التعديلات
-      </button>
-      <a
-        href={`/products/${product.slug}`}
-        class="border border-espresso/20 px-8 py-3.5 text-sm text-espresso transition-colors hover:border-cognac hover:text-cognac"
-      >
-        عرضها على المتجر
-      </a>
+    <div class="flex flex-wrap gap-3 border-t border-espresso/10 pt-6">
+      <button type="submit" class="admin-btn">حفظ التعديلات</button>
+      <a href={`/products/${product.slug}`} class="admin-btn-ghost">عرضها على المتجر</a>
     </div>
   </form>
 
-  <form
-    method="post"
-    action="/api/admin/products/delete"
-    class="mt-12 border-t border-espresso/10 pt-8"
-  >
+  <form method="post" action="/api/admin/products/delete" class="mt-6 flex flex-wrap items-center gap-4 rounded-2xl border border-red-200 bg-red-50/50 p-5">
     <input type="hidden" name="id" value={product.id} />
-    <button
-      type="submit"
-      class="text-sm text-stone underline decoration-stone/30 underline-offset-4 hover:text-cognac"
-    >
+    <p class="flex-1 text-sm text-stone">الحذف يزيلها من المتجر. الطلبات السابقة تحتفظ بسجلها.</p>
+    <button type="submit" class="rounded-xl px-5 py-2.5 text-sm text-red-700 underline decoration-red-300 underline-offset-4 hover:text-red-900">
       حذف هذه القطعة
     </button>
-    <p class="mt-2 text-xs leading-relaxed text-stone">
-      الحذف يزيلها من المتجر. الطلبات السابقة تحتفظ بسجلها.
-    </p>
   </form>
 </Admin>

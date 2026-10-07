@@ -12,9 +12,12 @@ import {
 interface CollectionRow {
   id: string;
   name: string;
+  name_ar?: string | null;
   slug: string;
   tagline: string | null;
+  tagline_ar?: string | null;
   description: string | null;
+  description_ar?: string | null;
   cover_image: string | null;
 }
 
@@ -22,8 +25,10 @@ interface ProductRow {
   id: string;
   collection_id: string | null;
   name: string;
+  name_ar?: string | null;
   slug: string;
   description: string | null;
+  description_ar?: string | null;
   price: number | string;
   images: string[] | null;
   featured: boolean | null;
@@ -33,8 +38,10 @@ interface VariantRow {
   id: string;
   product_id: string;
   color: string;
+  color_ar?: string | null;
   color_hex: string | null;
   size: string;
+  size_ar?: string | null;
   stock: number | null;
 }
 
@@ -42,16 +49,21 @@ const toCollection = (r: CollectionRow): Collection => ({
   id: r.id,
   slug: r.slug,
   name: r.name,
+  name_ar: r.name_ar ?? undefined,
   tagline: r.tagline ?? '',
+  tagline_ar: r.tagline_ar ?? undefined,
   description: r.description ?? '',
+  description_ar: r.description_ar ?? undefined,
   cover: r.cover_image ?? '',
 });
 
 const toVariant = (r: VariantRow): Variant => ({
   id: r.id,
   color: r.color,
+  color_ar: r.color_ar ?? undefined,
   colorHex: r.color_hex ?? '#CCCCCC',
   size: r.size,
+  size_ar: r.size_ar ?? undefined,
   stock: r.stock ?? 0,
 });
 
@@ -64,8 +76,10 @@ function toProduct(
     id: r.id,
     slug: r.slug,
     name: r.name,
+    name_ar: r.name_ar ?? undefined,
     price: Number(r.price),
     description: r.description ?? '',
+    description_ar: r.description_ar ?? undefined,
     collection: collectionSlug,
     collectionId: r.collection_id ?? undefined,
     images: r.images ?? [],

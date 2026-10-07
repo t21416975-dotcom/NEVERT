@@ -94,8 +94,10 @@ export async function orderCounts(): Promise<OrderCounts> {
 export async function saveProduct(input: {
   id?: string;
   name: string;
+  name_ar?: string;
   slug: string;
   description: string;
+  description_ar?: string;
   price: number;
   collectionId: string | null;
   images: string[];
@@ -107,8 +109,10 @@ export async function saveProduct(input: {
 
   const row = {
     name: input.name,
+    name_ar: input.name_ar || null,
     slug: input.slug,
     description: input.description,
+    description_ar: input.description_ar || null,
     price: input.price,
     collection_id: input.collectionId,
     images: input.images,
@@ -141,8 +145,10 @@ export async function saveProduct(input: {
       input.variants.map((v) => ({
         product_id: productId,
         color: v.color,
+        color_ar: v.color_ar ?? null,
         color_hex: v.colorHex,
         size: v.size,
+        size_ar: v.size_ar ?? null,
         stock: v.stock,
       }))
     );
@@ -162,18 +168,24 @@ export async function deleteProduct(id: string): Promise<AdminResult> {
 export async function saveCollection(input: {
   id?: string;
   name: string;
+  name_ar?: string;
   slug: string;
   tagline: string;
+  tagline_ar?: string;
   description: string;
+  description_ar?: string;
   cover: string;
 }): Promise<AdminResult> {
   const db = adminClient();
   if (!db) return { ok: false, error: 'No database connection.' };
   const row = {
     name: input.name,
+    name_ar: input.name_ar || null,
     slug: input.slug,
     tagline: input.tagline,
+    tagline_ar: input.tagline_ar || null,
     description: input.description,
+    description_ar: input.description_ar || null,
     cover_image: input.cover,
   };
   if (input.id) {
@@ -207,9 +219,12 @@ export async function listCollectionsAdmin() {
   return data as {
     id: string;
     name: string;
+    name_ar: string | null;
     slug: string;
     tagline: string | null;
+    tagline_ar: string | null;
     description: string | null;
+    description_ar: string | null;
     cover_image: string | null;
   }[];
 }
@@ -229,9 +244,12 @@ export async function importStarterCatalogue(): Promise<
       .upsert(
         {
           name: c.name,
+          name_ar: c.name_ar ?? null,
           slug: c.slug,
           tagline: c.tagline,
+          tagline_ar: c.tagline_ar ?? null,
           description: c.description,
+          description_ar: c.description_ar ?? null,
           cover_image: c.cover,
         },
         { onConflict: 'slug' }
@@ -250,8 +268,10 @@ export async function importStarterCatalogue(): Promise<
       .upsert(
         {
           name: p.name,
+          name_ar: p.name_ar ?? null,
           slug: p.slug,
           description: p.description,
+          description_ar: p.description_ar ?? null,
           price: p.price,
           collection_id: ids.get(p.collection) ?? null,
           images: p.images,
@@ -271,8 +291,10 @@ export async function importStarterCatalogue(): Promise<
         p.variants.map((v) => ({
           product_id: data.id,
           color: v.color,
+          color_ar: v.color_ar ?? null,
           color_hex: v.colorHex,
           size: v.size,
+          size_ar: v.size_ar ?? null,
           stock: v.stock,
         }))
       );

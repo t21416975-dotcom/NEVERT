@@ -15,8 +15,8 @@ const items = collections.map((c, i) => ({ ...c, count: counts[i] }));
   <Header slot="header" />
 
   <section class="mx-auto max-w-6xl px-5 pt-14 sm:px-8">
-    <h1 class="font-display text-4xl text-espresso sm:text-5xl">Collections</h1>
-    <p class="mt-4 max-w-lg leading-relaxed text-stone">
+    <h1 data-i18n="collections.title" class="font-display text-4xl text-espresso sm:text-5xl">Collections</h1>
+    <p data-i18n="collections.sub" class="mt-4 max-w-lg leading-relaxed text-stone">
       Three lines, six pieces. Each line uses a different weight of hide, so the
       feel in the hand changes even when the shape looks familiar.
     </p>
@@ -32,7 +32,11 @@ const items = collections.map((c, i) => ({ ...c, count: counts[i] }));
           <div class={`overflow-hidden bg-linen ${i % 2 ? 'sm:order-2' : ''}`}>
             <img
               src={c.cover}
-              alt=""
+              alt={c.name}
+              data-en={c.name}
+              data-ar={c.name_ar || c.name}
+              data-en-attr="alt"
+              data-ar-alt={c.name_ar || c.name}
               loading={i === 0 ? 'eager' : 'lazy'}
               width="1200"
               height="900"
@@ -40,10 +44,16 @@ const items = collections.map((c, i) => ({ ...c, count: counts[i] }));
             />
           </div>
           <div>
-            <h2 class="font-display text-3xl text-espresso">{c.name}</h2>
-            <p class="mt-2 text-sm text-cognac">{c.tagline}</p>
-            <p class="mt-5 max-w-md leading-relaxed text-stone">{c.description}</p>
-            <p class="mt-6 text-sm text-espresso underline decoration-espresso/25 underline-offset-4 group-hover:text-cognac group-hover:decoration-cognac/50">
+            <h2 class="font-display text-3xl text-espresso" data-en={c.name} data-ar={c.name_ar || c.name}>{c.name}</h2>
+            <p class="mt-2 text-sm text-cognac" data-en={c.tagline} data-ar={c.tagline_ar || c.tagline}>{c.tagline}</p>
+            <p class="mt-5 max-w-md leading-relaxed text-stone" data-en={c.description} data-ar={c.description_ar || c.description}>{c.description}</p>
+            <p
+              class="mt-6 text-sm text-espresso underline decoration-espresso/25 underline-offset-4 group-hover:text-cognac group-hover:decoration-cognac/50"
+              data-l10n-count={c.count}
+              data-l10n-kind="pieces-in"
+              data-l10n-name-en={c.name}
+              data-l10n-name-ar={c.name_ar || c.name}
+            >
               {c.count} pieces in {c.name}
             </p>
           </div>

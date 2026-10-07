@@ -1,0 +1,228 @@
+---
+import type { Variant } from '../../lib/types';
+
+interface Props {
+  /** Existing rows (edit form). Empty = one blank row (new product). */
+  variants?: Variant[];
+  /** Unique prefix so datalists never clash if used twice. */
+  prefix?: string;
+}
+
+const { variants = [], prefix = 'v' } = Astro.props;
+
+interface Row {
+  color: string;
+  color_ar: string;
+  colorHex: string;
+  size: string;
+  size_ar: string;
+  stock: number;
+}
+
+const emptyRow: Row = { color: '', color_ar: '', colorHex: '#A67B4F', size: '', size_ar: '', stock: 0 };
+const rows: Row[] =
+  variants.length > 0
+    ? variants.map((v) => ({
+        color: v.color,
+        color_ar: v.color_ar ?? '',
+        colorHex: /^#[0-9a-fA-F]{3,8}$/.test(v.colorHex) ? v.colorHex : '#CCCCCC',
+        size: v.size,
+        size_ar: v.size_ar ?? '',
+        stock: v.stock ?? 0,
+      }))
+    : [{ ...emptyRow }];
+
+const colorHints = ['Cognac', 'Espresso', 'Sand', 'Sage', 'Black', 'White', 'Brown', 'Beige', 'Caramel', 'Tan', 'Cream', 'Gray', 'Navy', 'Olive', 'Burgundy'];
+const sizeHints = ['Small', 'Medium', 'Large', 'One Size'];
+---
+
+<div data-variant-editor>
+  <p data-variant-error hidden role="alert" class="admin-alert">
+    يوجد لون ومقاس مكرر — كل تركيبة يجب أن تكون مختلفة. الصفوف المكررة محددة بالأحمر.
+  </p>
+
+  <div data-variant-rows class="mt-3 space-y-3">
+    {rows.map((v) => (
+      <div data-variant-row class="flex flex-wrap items-end gap-3 rounded-xl border border-espresso/10 bg-porcelain/60 p-3">
+        <label class="block">
+          <span class="mb-1 block text-xs text-stone">اللون</span>
+          <span class="flex items-center gap-2">
+            <input type="color" data-hex-picker value={v.colorHex} aria-label="لون التركيبة" class="h-10 w-12 cursor-pointer rounded-lg border border-espresso/20 bg-porcelain p-1" />
+            <input name="v_hex" data-hex-text value={v.colorHex} dir="ltr" spellcheck={false} autocomplete="off" aria-label="كود اللون" placeholder="#A67B4F" class="admin-input !mt-0 w-24 font-mono !text-xs" />
+          </span>
+        </label>
+        <label class="block min-w-[8rem] flex-1">
+          <span class="mb-1 block text-xs text-stone">اسم اللون (EN)</span>
+          <input name="v_color" data-color-en value={v.color} list={`${prefix}-colors`} autocomplete="off" placeholder="Cognac" class="admin-input !mt-0" />
+        </label>
+        <label class="block min-w-[8rem] flex-1">
+          <span class="mb-1 block text-xs text-stone">اسم اللون (AR)</span>
+          <input name="v_color_ar" data-color-ar value={v.color_ar} autocomplete="off" placeholder="كونياك" class="admin-input !mt-0" />
+        </label>
+        <label class="block min-w-[7rem] flex-1">
+          <span class="mb-1 block text-xs text-stone">المقاس</span>
+          <input name="v_size" data-size-en value={v.size} list={`${prefix}-sizes`} autocomplete="off" placeholder="Medium" class="admin-input !mt-0" />
+        </label>
+        <label class="block min-w-[6rem] flex-1">
+          <span class="mb-1 block text-xs text-stone">المقاس (AR)</span>
+          <input name="v_size_ar" data-size-ar value={v.size_ar} autocomplete="off" placeholder="وسط" class="admin-input !mt-0" />
+        </label>
+        <label class="block w-24">
+          <span class="mb-1 block text-xs text-stone">المخزون</span>
+          <input name="v_stock" data-stock type="number" min="0" step="1" value={v.stock} dir="ltr" class="admin-input !mt-0" />
+        </label>
+        <button type="button" data-variant-remove aria-label="حذف هذه التركيبة" title="حذف هذه التركيبة" class="mb-0.5 flex h-10 w-10 items-center justify-center rounded-xl border border-espresso/15 text-lg text-stone transition-colors hover:border-red-300 hover:text-red-700">
+          ✕
+        </button>
+      </div>
+    ))}
+  </div>
+
+  <datalist id={`${prefix}-colors`}>
+    {colorHints.map((c) => <option value={c}></option>)}
+  </datalist>
+  <datalist id={`${prefix}-sizes`}>
+    {sizeHints.map((s) => <option value={s}></option>)}
+  </datalist>
+
+  <template data-variant-template>
+    <div data-variant-row class="flex flex-wrap items-end gap-3 rounded-xl border border-espresso/10 bg-porcelain/60 p-3">
+      <label class="block">
+        <span class="mb-1 block text-xs text-stone">اللون</span>
+        <span class="flex items-center gap-2">
+          <input type="color" data-hex-picker value="#A67B4F" aria-label="لون التركيبة" class="h-10 w-12 cursor-pointer rounded-lg border border-espresso/20 bg-porcelain p-1" />
+          <input name="v_hex" data-hex-text value="#A67B4F" dir="ltr" spellcheck={false} autocomplete="off" aria-label="كود اللون" placeholder="#A67B4F" class="admin-input !mt-0 w-24 font-mono !text-xs" />
+        </span>
+      </label>
+      <label class="block min-w-[8rem] flex-1">
+        <span class="mb-1 block text-xs text-stone">اسم اللون (EN)</span>
+        <input name="v_color" data-color-en value="" list={`${prefix}-colors`} autocomplete="off" placeholder="Cognac" class="admin-input !mt-0" />
+      </label>
+      <label class="block min-w-[8rem] flex-1">
+        <span class="mb-1 block text-xs text-stone">اسم اللون (AR)</span>
+        <input name="v_color_ar" data-color-ar value="" autocomplete="off" placeholder="كونياك" class="admin-input !mt-0" />
+      </label>
+      <label class="block min-w-[7rem] flex-1">
+        <span class="mb-1 block text-xs text-stone">المقاس</span>
+        <input name="v_size" data-size-en value="" list={`${prefix}-sizes`} autocomplete="off" placeholder="Medium" class="admin-input !mt-0" />
+      </label>
+      <label class="block min-w-[6rem] flex-1">
+        <span class="mb-1 block text-xs text-stone">المقاس (AR)</span>
+        <input name="v_size_ar" data-size-ar value="" autocomplete="off" placeholder="وسط" class="admin-input !mt-0" />
+      </label>
+      <label class="block w-24">
+        <span class="mb-1 block text-xs text-stone">المخزون</span>
+        <input name="v_stock" data-stock type="number" min="0" step="1" value="0" dir="ltr" class="admin-input !mt-0" />
+      </label>
+      <button type="button" data-variant-remove aria-label="حذف هذه التركيبة" title="حذف هذه التركيبة" class="mb-0.5 flex h-10 w-10 items-center justify-center rounded-xl border border-espresso/15 text-lg text-stone transition-colors hover:border-red-300 hover:text-red-700">
+        ✕
+      </button>
+    </div>
+  </template>
+
+  <button type="button" data-variant-add class="admin-btn-ghost mt-3 !py-2.5 text-sm">
+    ＋ إضافة تركيبة (لون × مقاس)
+  </button>
+  <p class="admin-hint">الاسم العربي يُقترح تلقائياً للألوان والمقاسات المشهورة، وتقدر تعدله. الصف الفارغ تماماً يُتجاهل عند الحفظ.</p>
+</div>
+
+<script>
+  const COLOR_AR: Record<string, string> = {
+    cognac: 'كونياك', espresso: 'بني داكن', sand: 'رملي', sage: 'مريمية',
+    black: 'أسود', white: 'أبيض', brown: 'بني', beige: 'بيج', caramel: 'كراميل',
+    tan: 'أسمر', cream: 'كريمي', gray: 'رمادي', grey: 'رمادي', navy: 'كحلي',
+    olive: 'زيتي', burgundy: 'عنابي', gold: 'ذهبي', pink: 'وردي', red: 'أحمر',
+  };
+  const SIZE_AR: Record<string, string> = {
+    small: 'صغير', medium: 'وسط', large: 'كبير',
+    'one size': 'مقاس موحد', xs: 'صغير جداً', xl: 'كبير جداً',
+  };
+
+  document.querySelectorAll('[data-variant-editor]').forEach((editor) => {
+    const list = editor.querySelector('[data-variant-rows]')!;
+    const tpl = editor.querySelector<HTMLTemplateElement>('[data-variant-template]')!;
+    const err = editor.querySelector('[data-variant-error]') as HTMLElement | null;
+
+    const hideErr = () => {
+      if (err) err.hidden = true;
+      list.querySelectorAll('[data-variant-row]').forEach((r) => r.classList.remove('!border-red-400'));
+    };
+
+    function bindRow(row: Element) {
+      const picker = row.querySelector<HTMLInputElement>('[data-hex-picker]');
+      const hex = row.querySelector<HTMLInputElement>('[data-hex-text]');
+      picker?.addEventListener('input', () => {
+        if (hex) hex.value = picker.value.toUpperCase();
+      });
+      hex?.addEventListener('input', () => {
+        const v = hex.value.trim();
+        if (/^#[0-9a-fA-F]{6}$/.test(v) && picker) picker.value = v;
+      });
+
+      const autoFill = (
+        enSel: string, arSel: string, map: Record<string, string>
+      ) => {
+        const en = row.querySelector<HTMLInputElement>(enSel);
+        const ar = row.querySelector<HTMLInputElement>(arSel);
+        en?.addEventListener('change', () => {
+          if (ar && !ar.value.trim()) {
+            const hit = map[en.value.trim().toLowerCase()];
+            if (hit) ar.value = hit;
+          }
+        });
+      };
+      autoFill('[data-color-en]', '[data-color-ar]', COLOR_AR);
+      autoFill('[data-size-en]', '[data-size-ar]', SIZE_AR);
+
+      row.querySelector('[data-variant-remove]')?.addEventListener('click', () => {
+        const rows = list.querySelectorAll('[data-variant-row]');
+        if (rows.length > 1) {
+          row.remove();
+        } else {
+          // Last row: clear instead of removing so the form still submits.
+          row.querySelectorAll('input').forEach((i) => {
+            const input = i as HTMLInputElement;
+            if (input.type !== 'color') input.value = input.type === 'number' ? '0' : '';
+          });
+        }
+        hideErr();
+      });
+    }
+
+    list.querySelectorAll('[data-variant-row]').forEach(bindRow);
+
+    editor.querySelector('[data-variant-add]')?.addEventListener('click', () => {
+      const node = tpl.content.firstElementChild!;
+      const clone = node.cloneNode(true) as Element;
+      list.appendChild(clone);
+      bindRow(clone);
+      hideErr();
+      clone.querySelector<HTMLInputElement>('[data-color-en]')?.focus();
+    });
+
+    // Block submit on duplicate colour×size (DB has a unique constraint).
+    editor.closest('form')?.addEventListener('submit', (e) => {
+      const seen = new Set<string>();
+      let dup = false;
+      list.querySelectorAll('[data-variant-row]').forEach((row) => {
+        const c = row.querySelector<HTMLInputElement>('[data-color-en]')?.value.trim().toLowerCase() ?? '';
+        if (!c) return; // empty rows are ignored on save
+        const s = row.querySelector<HTMLInputElement>('[data-size-en]')?.value.trim().toLowerCase() || 'medium';
+        const key = `${c}|${s}`;
+        if (seen.has(key)) {
+          dup = true;
+          row.classList.add('!border-red-400');
+        } else {
+          seen.add(key);
+        }
+      });
+      if (dup) {
+        e.preventDefault();
+        if (err) {
+          err.hidden = false;
+          err.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+        }
+      }
+    });
+  });
+</script>

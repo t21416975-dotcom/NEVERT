@@ -1,0 +1,332 @@
+---
+/**
+ * Gucci-style product gallery: one large stage, arrow + thumbnail + swipe
+ * navigation, counter, keyboard support and a fullscreen lightbox.
+ * Alt texts stay bilingual so the language toggle keeps working.
+ */
+interface Props {
+  images: string[];
+  name: string;
+  nameAr?: string;
+  colorEn?: string;
+  colorAr?: string;
+}
+
+const { images, name, nameAr = '', colorEn = '', colorAr = '' } = Astro.props;
+
+const altEn = (i: number) =>
+  i === 0
+    ? `${name}${colorEn ? ` in ${colorEn} leather` : ''}`
+    : `${name}, view ${i + 1}`;
+const altAr = (i: number) => {
+  const n = nameAr || name;
+  const c = colorAr || colorEn;
+  return i === 0 ? `${n}${c ? ` بجلد ${c}` : ''}` : `${n}، صورة ${i + 1}`;
+};
+---
+
+<div data-gallery class="flex flex-col-reverse gap-3 lg:flex-row">
+  <!-- Thumbnails: strip below on mobile, side rail on desktop (Gucci) -->
+  <div
+    data-thumbs
+    class="flex gap-3 overflow-x-auto pb-1 lg:max-h-[42rem] lg:flex-col lg:overflow-y-auto lg:overflow-x-hidden lg:pb-0 lg:pr-1"
+    role="tablist"
+    aria-label="Product images"
+  >
+    {images.map((src, i) => (
+      <button
+        type="button"
+        role="tab"
+        data-thumb={i}
+        aria-selected={i === 0 ? 'true' : 'false'}
+        aria-label={`Image ${i + 1}`}
+        data-full={src}
+        data-alt-en={altEn(i)}
+        data-alt-ar={altAr(i)}
+        class:list={[
+          'relative w-20 shrink-0 overflow-hidden bg-linen transition-opacity lg:w-24',
+          i === 0 ? 'opacity-100' : 'opacity-55',
+        ]}
+      >
+        <img
+          src={src}
+          alt=""
+          loading={i === 0 ? 'eager' : 'lazy'}
+          width="300"
+          height="375"
+          class="aspect-[4/5] w-full object-cover"
+        />
+        <span
+          data-thumb-ring
+          aria-hidden="true"
+          class:list={[
+            'pointer-events-none absolute inset-0 ring-2 ring-inset ring-cognac',
+            i === 0 ? '' : 'hidden',
+          ]}
+        ></span>
+      </button>
+    ))}
+  </div>
+
+  <!-- Stage -->
+  <div class="relative flex-1">
+    <div
+      data-stage
+      tabindex="0"
+      class="group relative aspect-[4/5] w-full cursor-zoom-in select-none overflow-hidden bg-linen outline-none focus-visible:ring-2 focus-visible:ring-cognac"
+    >
+      {images.map((src, i) => (
+        <img
+          src={src}
+          alt={i === 0 ? altEn(i) : ''}
+          data-gallery-img={i}
+          width="1200"
+          height="1400"
+          fetchpriority={i === 0 ? 'high' : undefined}
+          loading={i === 0 ? 'eager' : 'lazy'}
+          draggable="false"
+          class="absolute inset-0 h-full w-full object-cover transition-opacity duration-500 ease-out motion-reduce:transition-none"
+        />
+      ))}
+
+      <!-- Arrows -->
+      <button
+        type="button"
+        data-prev
+        data-i18n-attr="aria-label:gallery.prev"
+        aria-label="Previous image"
+        class="absolute start-3 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-porcelain/85 text-espresso shadow backdrop-blur transition-all hover:bg-porcelain lg:opacity-0 lg:group-hover:opacity-100 lg:focus-visible:opacity-100"
+      >
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="rtl:-scale-x-100">
+          <path d="m15 6-6 6 6 6" />
+        </svg>
+      </button>
+      <button
+        type="button"
+        data-next
+        data-i18n-attr="aria-label:gallery.next"
+        aria-label="Next image"
+        class="absolute end-3 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-porcelain/85 text-espresso shadow backdrop-blur transition-all hover:bg-porcelain lg:opacity-0 lg:group-hover:opacity-100 lg:focus-visible:opacity-100"
+      >
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="rtl:-scale-x-100">
+          <path d="m9 6 6 6-6 6" />
+        </svg>
+      </button>
+
+      <!-- Counter + expand -->
+      <div class="absolute bottom-3 end-3 flex items-center gap-2">
+        <span class="rounded-full bg-espresso/60 px-3 py-1 text-xs tabular-nums text-porcelain backdrop-blur">
+          <span data-current>1</span> / {images.length}
+        </span>
+        <button
+          type="button"
+          data-expand
+          data-i18n-attr="aria-label:gallery.expand"
+          aria-label="View fullscreen"
+          class="flex h-9 w-9 items-center justify-center rounded-full bg-porcelain/85 text-espresso shadow backdrop-blur transition-colors hover:bg-porcelain"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M8 3H3v5M16 3h5v5M8 21H3v-5M16 21h5v-5" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Fullscreen lightbox -->
+  <div
+    data-lightbox
+    hidden
+    class="fixed inset-0 z-[80] flex-col items-center justify-center bg-espresso/95 p-4 backdrop-blur-sm sm:p-10"
+    role="dialog"
+    aria-modal="true"
+    aria-label="Product images fullscreen"
+  >
+    <button
+      type="button"
+      data-close
+      data-i18n-attr="aria-label:gallery.close"
+      aria-label="Close fullscreen view"
+      class="absolute end-5 top-5 flex h-11 w-11 items-center justify-center rounded-full bg-porcelain/15 text-porcelain transition-colors hover:bg-porcelain/30"
+    >
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true">
+        <path d="m6 6 12 12M18 6 6 18" />
+      </svg>
+    </button>
+    <img
+      data-lightbox-img
+      src={images[0]}
+      alt={altEn(0)}
+      class="max-h-[80vh] w-auto max-w-full object-contain"
+    />
+    <div class="mt-5 flex items-center gap-4">
+      <button
+        type="button"
+        data-lb-prev
+        aria-label="Previous image"
+        class="flex h-11 w-11 items-center justify-center rounded-full bg-porcelain/15 text-porcelain transition-colors hover:bg-porcelain/30"
+      >
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="rtl:-scale-x-100">
+          <path d="m15 6-6 6 6 6" />
+        </svg>
+      </button>
+      <span class="text-sm tabular-nums text-porcelain/80">
+        <span data-lb-current>1</span> / {images.length}
+      </span>
+      <button
+        type="button"
+        data-lb-next
+        aria-label="Next image"
+        class="flex h-11 w-11 items-center justify-center rounded-full bg-porcelain/15 text-porcelain transition-colors hover:bg-porcelain/30"
+      >
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="rtl:-scale-x-100">
+          <path d="m9 6 6 6-6 6" />
+        </svg>
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.querySelectorAll('[data-gallery]').forEach((gallery) => {
+    const thumbs = [...gallery.querySelectorAll<HTMLButtonElement>('[data-thumb]')];
+    const stageImgs = [...gallery.querySelectorAll<HTMLImageElement>('[data-gallery-img]')];
+    const current = gallery.querySelector('[data-current]');
+    const stage = gallery.querySelector<HTMLElement>('[data-stage]');
+    const lightbox = gallery.querySelector<HTMLElement>('[data-lightbox]');
+    const lbImg = gallery.querySelector<HTMLImageElement>('[data-lightbox-img]');
+    const lbCurrent = gallery.querySelector('[data-lb-current]');
+    const total = thumbs.length;
+    if (total === 0) return;
+    let index = 0;
+
+    const isRTL = () => document.documentElement.dir === 'rtl';
+
+    function render(scroll = true) {
+      // Stage crossfade: only the active image is visible.
+      stageImgs.forEach((img, i) => {
+        const active = i === index;
+        img.classList.toggle('opacity-0', !active);
+        img.classList.toggle('pointer-events-none', !active);
+        img.classList.toggle('scale-[1.02]', active);
+        if (!active) img.removeAttribute('alt');
+      });
+      const t = thumbs[index];
+      const en = t.getAttribute('data-alt-en') ?? '';
+      const ar = t.getAttribute('data-alt-ar') ?? '';
+      const activeImg = stageImgs[index];
+      // Keep bilingual alts so the global language toggle keeps working.
+      activeImg.setAttribute('data-en', en);
+      activeImg.setAttribute('data-ar', ar);
+      activeImg.setAttribute('alt', document.documentElement.lang === 'ar' && ar ? ar : en);
+
+      thumbs.forEach((th, i) => {
+        const on = i === index;
+        th.setAttribute('aria-selected', on ? 'true' : 'false');
+        th.classList.toggle('opacity-100', on);
+        th.classList.toggle('opacity-55', !on);
+        th.querySelector('[data-thumb-ring]')?.classList.toggle('hidden', !on);
+      });
+      if (current) current.textContent = String(index + 1);
+      if (lbCurrent) lbCurrent.textContent = String(index + 1);
+      if (lbImg && lightbox && !lightbox.hidden) {
+        lbImg.src = t.getAttribute('data-full') ?? '';
+        lbImg.alt = activeImg.alt;
+      }
+      // Keep the active thumbnail in view (skip on first paint).
+      if (scroll) thumbs[index].scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'smooth' });
+    }
+
+    const go = (i: number) => {
+      index = (i + total) % total;
+      render();
+    };
+    const next = () => go(index + 1);
+    const prev = () => go(index - 1);
+
+    thumbs.forEach((th, i) => th.addEventListener('click', () => go(i)));
+    gallery.querySelector('[data-next]')?.addEventListener('click', (e) => { e.stopPropagation(); next(); });
+    gallery.querySelector('[data-prev]')?.addEventListener('click', (e) => { e.stopPropagation(); prev(); });
+
+    // Keyboard: arrows flip in RTL so motion always matches reading direction.
+    stage?.addEventListener('keydown', (e) => {
+      if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+      e.preventDefault();
+      const rtl = isRTL();
+      if (e.key === 'ArrowRight') (rtl ? prev() : next());
+      else (rtl ? next() : prev());
+    });
+
+    // Touch swipe (a swipe must not open the lightbox via the trailing click).
+    let touchX: number | null = null;
+    let swiped = false;
+    stage?.addEventListener('touchstart', (e) => {
+      touchX = e.touches[0].clientX;
+      swiped = false;
+    }, { passive: true });
+    stage?.addEventListener('touchmove', (e) => {
+      if (touchX !== null && Math.abs(e.touches[0].clientX - touchX) > 12) swiped = true;
+    }, { passive: true });
+    stage?.addEventListener('touchend', (e) => {
+      if (touchX === null) return;
+      const dx = e.changedTouches[0].clientX - touchX;
+      touchX = null;
+      if (Math.abs(dx) < 40) return;
+      const rtl = isRTL();
+      if (dx < 0) (rtl ? prev() : next());
+      else (rtl ? next() : prev());
+    }, { passive: true });
+
+    // Lightbox.
+    const open = () => {
+      if (!lightbox || !lbImg) return;
+      const t = thumbs[index];
+      lbImg.src = t.getAttribute('data-full') ?? '';
+      lbImg.alt = stageImgs[index].alt;
+      lightbox.hidden = false;
+      lightbox.classList.remove('hidden');
+      lightbox.classList.add('flex');
+      document.body.style.overflow = 'hidden';
+      gallery.querySelector<HTMLButtonElement>('[data-close]')?.focus();
+    };
+    const close = () => {
+      if (!lightbox) return;
+      lightbox.hidden = true;
+      lightbox.classList.add('hidden');
+      lightbox.classList.remove('flex');
+      document.body.style.overflow = '';
+      stage?.focus();
+    };
+    gallery.querySelector('[data-expand]')?.addEventListener('click', (e) => { e.stopPropagation(); open(); });
+    stage?.addEventListener('click', () => {
+      if (swiped) {
+        swiped = false;
+        return;
+      }
+      open();
+    });
+    gallery.querySelector('[data-close]')?.addEventListener('click', close);
+    gallery.querySelector('[data-lb-next]')?.addEventListener('click', next);
+    gallery.querySelector('[data-lb-prev]')?.addEventListener('click', prev);
+    lightbox?.addEventListener('click', (e) => {
+      if (e.target === lightbox) close();
+    });
+    document.addEventListener('keydown', (e) => {
+      if (!lightbox || lightbox.hidden) return;
+      if (e.key === 'Escape') close();
+      if (e.key === 'ArrowRight') (isRTL() ? prev() : next());
+      if (e.key === 'ArrowLeft') (isRTL() ? next() : prev());
+    });
+
+    render(false);
+  });
+</script>
+
+<style>
+  [data-gallery-img] {
+    opacity: 0;
+  }
+  [data-gallery-img]:first-child {
+    opacity: 1;
+  }
+</style>

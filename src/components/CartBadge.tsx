@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { cartCount } from '../lib/cart';
-import { dict, getStoredLang, type Lang } from '../lib/i18n';
+import { getStoredLang, t, type Lang } from '../lib/i18n';
 
 export default function CartBadge() {
   const [count, setCount] = useState(0);
@@ -23,7 +23,7 @@ export default function CartBadge() {
     };
   }, []);
 
-  const label = dict['bag.label'][lang];
+  const label = t('bag.label', lang);
   const aria =
     lang === 'ar'
       ? `حقيبتك، ${count} ${count === 1 ? 'قطعة' : 'قطع'}`
@@ -61,4 +61,3 @@ export default function CartBadge() {
     </a>
   );
 }
-

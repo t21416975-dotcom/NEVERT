@@ -30,204 +30,124 @@ for (const c of shopCollections) {
 
 <Admin title="المجموعات — لوحة تحكم NEVERT" email={admin?.email}>
   <h1 class="text-3xl text-espresso">المجموعات</h1>
-  <p class="mt-3 max-w-lg text-sm leading-relaxed text-stone">
-    كل مجموعة لها صورة غلاف والنصوص التي تظهر بجانبها في صفحتها. أما ربط القطع
-    بالمجموعة فيتم من صفحة المنتج.
+  <p class="mt-2 max-w-lg text-sm leading-relaxed text-stone">
+    كل مجموعة لها صورة غلاف والنصوص التي تظهر بجانبها في صفحتها. ربط القطع
+    بالمجموعة يتم من صفحة المنتج.
   </p>
 
-  {
-    !dbReady && (
-      <p class="mt-6 border border-cognac/40 bg-cognac/5 px-4 py-3 text-sm leading-relaxed text-espresso">
-        قاعدة البيانات غير متصلة، لذلك تُعرض هذه المجموعات الثلاث من الكود. انقل
-        القطع الأساسية إلى قاعدة البيانات من صفحة المنتجات بعد ضبط المفاتيح.
-      </p>
-    )
-  }
-  {
-    saved && (
-      <p class="mt-6 border border-espresso/15 bg-linen/60 px-4 py-3 text-sm text-espresso">
-        تم الحفظ.
-      </p>
-    )
-  }
-  {
-    errorText && (
-      <p
-        role="alert"
-        class="mt-6 border border-cognac/40 bg-cognac/5 px-4 py-3 text-sm text-espresso"
-      >
-        {errorText}
-      </p>
-    )
-  }
+  {!dbReady && (
+    <p class="admin-alert mt-6">
+      قاعدة البيانات غير متصلة، لذلك تُعرض هذه المجموعات الثلاث من الكود. انقل
+      القطع الأساسية إلى قاعدة البيانات من صفحة المنتجات بعد ضبط المفاتيح.
+    </p>
+  )}
+  {saved && <p class="admin-ok mt-6">تم الحفظ.</p>}
+  {errorText && <p role="alert" class="admin-alert mt-6">{errorText}</p>}
 
-  <ul class="mt-10 divide-y divide-espresso/10 border-y border-espresso/10">
-    {
-      shopCollections.map((c) =>
-        dbCollections.find((d) => d.id === c.id) ? (
-          <li class="py-6">
-            <form
-              method="post"
-              action="/api/admin/collections/save"
-              class="grid gap-5 sm:grid-cols-2"
-            >
-              <input type="hidden" name="id" value={c.id} />
+  <ul class="mt-8 space-y-5">
+    {shopCollections.map((c) =>
+      dbCollections.find((d) => d.id === c.id) ? (
+        <li class="admin-card">
+          <form method="post" action="/api/admin/collections/save" class="grid gap-5 sm:grid-cols-2">
+            <input type="hidden" name="id" value={c.id} />
+            <div class="sm:col-span-2 flex flex-wrap items-center gap-4">
+              {c.cover && <img src={c.cover} alt="" width="120" height="68" class="h-14 w-24 rounded-xl object-cover" />}
               <div>
-                <label for={`name-${c.id}`} class="block text-sm text-espresso">
-                  الاسم
-                </label>
-                <input
-                  id={`name-${c.id}`}
-                  name="name"
-                  required
-                  value={c.name}
-                  class="mt-2 w-full border border-espresso/20 bg-porcelain px-4 py-3 text-sm outline-none focus:border-cognac"
-                />
+                <p class="text-lg text-espresso">{c.name_ar ? `${c.name_ar} · ${c.name}` : c.name}</p>
+                <p class="mt-0.5 text-xs text-stone">
+                  {piecesLabel(counts.get(c.slug) ?? 0)} · <span class="latin">/collections/{c.slug}</span>
+                </p>
               </div>
-              <div>
-                <label for={`slug-${c.id}`} class="block text-sm text-espresso">
-                  رابط الصفحة
-                </label>
-                <input
-                  id={`slug-${c.id}`}
-                  name="slug"
-                  dir="ltr"
-                  value={c.slug}
-                  class="mt-2 w-full border border-espresso/20 bg-porcelain px-4 py-3 text-sm outline-none focus:border-cognac"
-                />
-              </div>
-              <div class="sm:col-span-2">
-                <label for={`tagline-${c.id}`} class="block text-sm text-espresso">
-                  سطر واحد بجانب الاسم
-                </label>
-                <input
-                  id={`tagline-${c.id}`}
-                  name="tagline"
-                  value={c.tagline}
-                  class="mt-2 w-full border border-espresso/20 bg-porcelain px-4 py-3 text-sm outline-none focus:border-cognac"
-                />
-              </div>
-              <div class="sm:col-span-2">
-                <label for={`description-${c.id}`} class="block text-sm text-espresso">
-                  الوصف
-                </label>
-                <textarea
-                  id={`description-${c.id}`}
-                  name="description"
-                  rows={3}
-                  class="mt-2 w-full border border-espresso/20 bg-porcelain px-4 py-3 text-sm outline-none focus:border-cognac"
-                >{c.description}</textarea>
-              </div>
-              <div class="sm:col-span-2">
-                <label for={`cover-${c.id}`} class="block text-sm text-espresso">
-                  رابط صورة الغلاف
-                </label>
-                <input
-                  id={`cover-${c.id}`}
-                  name="cover"
-                  dir="ltr"
-                  value={c.cover}
-                  class="mt-2 w-full border border-espresso/20 bg-porcelain px-4 py-3 text-sm outline-none focus:border-cognac"
-                />
-              </div>
-              <div class="flex flex-wrap items-center gap-5 sm:col-span-2">
-                <button
-                  type="submit"
-                  class="bg-espresso px-8 py-3 text-sm text-porcelain transition-colors hover:bg-cognac"
-                >
-                  حفظ المجموعة
-                </button>
-                <span class="text-sm text-stone">
-                  {piecesLabel(counts.get(c.slug) ?? 0)} ·{' '}
-                  <span class="latin">/collections/{c.slug}</span>
-                </span>
-              </div>
-            </form>
-          </li>
-        ) : (
-          <li class="flex flex-wrap items-baseline justify-between gap-4 py-6">
-            <div>
-              <p class="text-lg text-espresso">{c.name}</p>
-              <p class="mt-1 text-sm text-stone">
-                {c.tagline} · {piecesLabel(counts.get(c.slug) ?? 0)}
-              </p>
             </div>
-            <span class="text-sm text-stone">في الكود</span>
-          </li>
-        )
+            <div>
+              <label for={`name-${c.id}`} class="admin-label">الاسم (إنجليزي) *</label>
+              <input id={`name-${c.id}`} name="name" required value={c.name} class="admin-input" />
+            </div>
+            <div>
+              <label for={`name_ar-${c.id}`} class="admin-label">الاسم (عربي)</label>
+              <input id={`name_ar-${c.id}`} name="name_ar" value={c.name_ar ?? ''} class="admin-input" />
+            </div>
+            <div>
+              <label for={`slug-${c.id}`} class="admin-label">رابط الصفحة</label>
+              <input id={`slug-${c.id}`} name="slug" dir="ltr" value={c.slug} class="admin-input" />
+            </div>
+            <div>
+              <label for={`cover-${c.id}`} class="admin-label">رابط صورة الغلاف</label>
+              <input id={`cover-${c.id}`} name="cover" dir="ltr" value={c.cover} class="admin-input" />
+            </div>
+            <div>
+              <label for={`tagline-${c.id}`} class="admin-label">سطر بجانب الاسم (إنجليزي)</label>
+              <input id={`tagline-${c.id}`} name="tagline" value={c.tagline} class="admin-input" />
+            </div>
+            <div>
+              <label for={`tagline_ar-${c.id}`} class="admin-label">سطر بجانب الاسم (عربي)</label>
+              <input id={`tagline_ar-${c.id}`} name="tagline_ar" value={c.tagline_ar ?? ''} class="admin-input" />
+            </div>
+            <div class="sm:col-span-2">
+              <label for={`description-${c.id}`} class="admin-label">الوصف (إنجليزي)</label>
+              <textarea id={`description-${c.id}`} name="description" rows={2} class="admin-input">{c.description}</textarea>
+            </div>
+            <div class="sm:col-span-2">
+              <label for={`description_ar-${c.id}`} class="admin-label">الوصف (عربي)</label>
+              <textarea id={`description_ar-${c.id}`} name="description_ar" rows={2} class="admin-input">{c.description_ar ?? ''}</textarea>
+            </div>
+            <div class="sm:col-span-2">
+              <button type="submit" class="admin-btn">حفظ المجموعة</button>
+            </div>
+          </form>
+        </li>
+      ) : (
+        <li class="admin-row">
+          <div class="flex-1">
+            <p class="text-lg text-espresso">{c.name}</p>
+            <p class="mt-1 text-sm text-stone">{c.tagline} · {piecesLabel(counts.get(c.slug) ?? 0)}</p>
+          </div>
+          <span class="text-xs text-stone">في الكود</span>
+        </li>
       )
-    }
+    )}
   </ul>
 
-  {
-    dbReady && (
-      <section class="mt-16">
-        <h2 class="text-2xl text-espresso">إضافة مجموعة جديدة</h2>
-        <form
-          method="post"
-          action="/api/admin/collections/save"
-          class="mt-6 grid gap-5 sm:grid-cols-2"
-        >
-          <div>
-            <label for="new-name" class="block text-sm text-espresso">الاسم</label>
-            <input
-              id="new-name"
-              name="name"
-              required
-              class="mt-2 w-full border border-espresso/20 bg-porcelain px-4 py-3 text-sm outline-none focus:border-cognac"
-            />
-          </div>
-          <div>
-            <label for="new-slug" class="block text-sm text-espresso">
-              رابط الصفحة <span class="text-stone">(لو تركته فارغًا يُبنى من الاسم)</span>
-            </label>
-            <input
-              id="new-slug"
-              name="slug"
-              dir="ltr"
-              class="mt-2 w-full border border-espresso/20 bg-porcelain px-4 py-3 text-sm outline-none focus:border-cognac"
-            />
-          </div>
-          <div class="sm:col-span-2">
-            <label for="new-tagline" class="block text-sm text-espresso">
-              سطر واحد بجانب الاسم
-            </label>
-            <input
-              id="new-tagline"
-              name="tagline"
-              class="mt-2 w-full border border-espresso/20 bg-porcelain px-4 py-3 text-sm outline-none focus:border-cognac"
-            />
-          </div>
-          <div class="sm:col-span-2">
-            <label for="new-description" class="block text-sm text-espresso">الوصف</label>
-            <textarea
-              id="new-description"
-              name="description"
-              rows={3}
-              class="mt-2 w-full border border-espresso/20 bg-porcelain px-4 py-3 text-sm outline-none focus:border-cognac"
-            ></textarea>
-          </div>
-          <div class="sm:col-span-2">
-            <label for="new-cover" class="block text-sm text-espresso">
-              رابط صورة الغلاف
-            </label>
-            <input
-              id="new-cover"
-              name="cover"
-              dir="ltr"
-              class="mt-2 w-full border border-espresso/20 bg-porcelain px-4 py-3 text-sm outline-none focus:border-cognac"
-            />
-          </div>
-          <div class="sm:col-span-2">
-            <button
-              type="submit"
-              class="bg-espresso px-8 py-3.5 text-sm text-porcelain transition-colors hover:bg-cognac"
-            >
-              إضافة المجموعة
-            </button>
-          </div>
-        </form>
-      </section>
-    )
-  }
+  {dbReady && (
+    <section class="admin-card mt-8">
+      <h2 class="admin-section-title">إضافة مجموعة جديدة</h2>
+      <form method="post" action="/api/admin/collections/save" class="mt-6 grid gap-5 sm:grid-cols-2">
+        <div>
+          <label for="new-name" class="admin-label">الاسم (إنجليزي) *</label>
+          <input id="new-name" name="name" required class="admin-input" />
+        </div>
+        <div>
+          <label for="new-name_ar" class="admin-label">الاسم (عربي)</label>
+          <input id="new-name_ar" name="name_ar" class="admin-input" />
+        </div>
+        <div>
+          <label for="new-slug" class="admin-label">رابط الصفحة <span class="text-stone">(يُبنى تلقائياً)</span></label>
+          <input id="new-slug" name="slug" dir="ltr" class="admin-input" />
+        </div>
+        <div>
+          <label for="new-cover" class="admin-label">رابط صورة الغلاف</label>
+          <input id="new-cover" name="cover" dir="ltr" class="admin-input" />
+        </div>
+        <div>
+          <label for="new-tagline" class="admin-label">سطر بجانب الاسم (إنجليزي)</label>
+          <input id="new-tagline" name="tagline" class="admin-input" />
+        </div>
+        <div>
+          <label for="new-tagline_ar" class="admin-label">سطر بجانب الاسم (عربي)</label>
+          <input id="new-tagline_ar" name="tagline_ar" class="admin-input" />
+        </div>
+        <div class="sm:col-span-2">
+          <label for="new-description" class="admin-label">الوصف (إنجليزي)</label>
+          <textarea id="new-description" name="description" rows={2} class="admin-input"></textarea>
+        </div>
+        <div class="sm:col-span-2">
+          <label for="new-description_ar" class="admin-label">الوصف (عربي)</label>
+          <textarea id="new-description_ar" name="description_ar" rows={2} class="admin-input"></textarea>
+        </div>
+        <div class="sm:col-span-2">
+          <button type="submit" class="admin-btn">إضافة المجموعة</button>
+        </div>
+      </form>
+    </section>
+  )}
 </Admin>

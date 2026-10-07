@@ -17,6 +17,15 @@ export const shortStatusLabel: Record<OrderStatus, string> = {
   cancelled: 'ملغي',
 };
 
+/** Soft background pill colors per status (admin dashboard). */
+export const statusPillClass: Record<OrderStatus, string> = {
+  new: 'bg-cognac/15 text-cognac-dark',
+  contacted: 'bg-amber-100 text-amber-800',
+  confirmed: 'bg-emerald-100 text-emerald-800',
+  delivered: 'bg-espresso/10 text-espresso',
+  cancelled: 'bg-red-100 text-red-800',
+};
+
 export function formatDateTime(iso: string): string {
   return new Date(iso).toLocaleString('ar-EG-u-nu-latn', {
     dateStyle: 'medium',

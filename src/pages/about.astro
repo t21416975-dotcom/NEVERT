@@ -8,10 +8,10 @@ import Footer from '../components/Footer.astro';
   <Header slot="header" />
 
   <section class="mx-auto max-w-6xl px-5 pt-12 sm:px-8">
-    <h1 class="max-w-2xl font-display text-4xl leading-tight text-espresso sm:text-5xl">
+    <h1 data-i18n="about.title" class="max-w-2xl font-display text-4xl leading-tight text-espresso sm:text-5xl">
       Four people, two tanneries, one bench
     </h1>
-    <p class="mt-6 max-w-xl leading-relaxed text-stone">
+    <p data-i18n="about.intro" class="mt-6 max-w-xl leading-relaxed text-stone">
       NEVERT began in 2016 with a single tote made for a friend who could not find
       a bag that kept its shape past the first year. We still work the same way:
       one hide per bag, cut by hand, closed with saddle stitches that will not
@@ -24,6 +24,10 @@ import Footer from '../components/Footer.astro';
       <img
         src="https://picsum.photos/seed/atelier-wide/1600/900"
         alt="The workshop bench with leather panels, awls and waxed thread"
+        data-en="The workshop bench with leather panels, awls and waxed thread"
+        data-ar="طاولة المشغل عليها قطع جلد ومخرز وخيط مشمع"
+        data-en-attr="alt"
+        data-ar-alt="طاولة المشغل عليها قطع جلد ومخرز وخيط مشمع"
         width="1600"
         height="900"
         class="aspect-[16/9] w-full object-cover"
@@ -34,22 +38,22 @@ import Footer from '../components/Footer.astro';
   <section class="mx-auto max-w-6xl px-5 pt-20 sm:px-8">
     <div class="grid gap-12 sm:grid-cols-2">
       <div>
-        <h2 class="font-display text-3xl text-espresso">What we do not do</h2>
+        <h2 data-i18n="about.no.title" class="font-display text-3xl text-espresso">What we do not do</h2>
         <ul class="mt-6 space-y-4 text-stone">
-          <li class="border-t border-espresso/10 pt-4">
+          <li class="border-t border-espresso/10 pt-4" data-i18n="about.no.1">
             No bonded or corrected-grain leather, ever.
           </li>
-          <li class="border-t border-espresso/10 pt-4">
+          <li class="border-t border-espresso/10 pt-4" data-i18n="about.no.2">
             No machine stitching where a hand stitch will hold better.
           </li>
-          <li class="border-t border-espresso/10 pt-4">
+          <li class="border-t border-espresso/10 pt-4" data-i18n="about.no.3">
             No seasonal drops. A piece stays on the bench until it is right.
           </li>
         </ul>
       </div>
       <div>
-        <h2 class="font-display text-3xl text-espresso">Caring for the leather</h2>
-        <p class="mt-6 leading-relaxed text-stone">
+        <h2 data-i18n="about.care.title" class="font-display text-3xl text-espresso">Caring for the leather</h2>
+        <p data-i18n="about.care.body" class="mt-6 leading-relaxed text-stone">
           Keep it out of long direct sun, wipe rain off with a dry cloth and let
           it dry away from heat. Once a year, a thin coat of neutral cream is
           enough. The scratches that come with use will even out on their own.
@@ -60,10 +64,10 @@ import Footer from '../components/Footer.astro';
 
   <section class="mx-auto max-w-6xl px-5 pt-20 sm:px-8">
     <div class="bg-linen/60 px-6 py-14 sm:px-12">
-      <h2 class="font-display text-3xl text-espresso">
+      <h2 data-i18n="about.cta.title" class="font-display text-3xl text-espresso">
         Questions before you order?
       </h2>
-      <p class="mt-4 max-w-lg leading-relaxed text-stone">
+      <p data-i18n="about.cta.body" class="mt-4 max-w-lg leading-relaxed text-stone">
         Send a message and we will answer with a photo of the actual piece on the
         bench, in the colour you are considering.
       </p>
@@ -71,7 +75,7 @@ import Footer from '../components/Footer.astro';
         href="/contact"
         class="mt-8 inline-block bg-espresso px-8 py-3.5 text-sm tracking-[0.08em] text-porcelain transition-colors hover:bg-cognac"
       >
-        Contact the workshop
+        <span data-i18n="about.cta.btn">Contact the workshop</span>
       </a>
     </div>
   </section>

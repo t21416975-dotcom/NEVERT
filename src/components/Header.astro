@@ -40,7 +40,6 @@ const path = Astro.url.pathname;
                     <a
             href={l.href}
             data-i18n={l.i18n}
-            aria-label={l.i18n}
             class:list={[
               'header-fg font-body text-sm tracking-[0.06em] transition-colors duration-500 hover:text-cognac',
               path.startsWith(l.href) ? 'text-cognac' : 'text-espresso/80',
@@ -65,7 +64,7 @@ const path = Astro.url.pathname;
         aria-expanded="false"
         aria-controls="mobile-menu"
         aria-label="Open menu"
-        class="header-fg -mr-1 flex h-9 w-9 items-center justify-center text-espresso transition-colors duration-500 hover:text-cognac sm:hidden"
+        class="header-fg -me-1 flex h-9 w-9 items-center justify-center text-espresso transition-colors duration-500 hover:text-cognac sm:hidden"
       >
         <svg
           data-icon-open
@@ -112,7 +111,6 @@ const path = Astro.url.pathname;
                         <a
               href={l.href}
               data-i18n={l.i18n}
-              aria-label={l.i18n}
               class:list={[
                 'block border-b border-espresso/5 py-3.5 font-body text-base tracking-[0.04em] transition-colors hover:text-cognac',
                 path.startsWith(l.href) ? 'text-cognac' : 'text-espresso',

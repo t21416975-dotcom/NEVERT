@@ -1,11 +1,16 @@
 // Client-side cart stored in localStorage, synced via a custom event.
+// Bilingual display fields (_ar) travel with each line so the bag renders
+// in the active language; old carts without them fall back to English.
 export interface CartItem {
   slug: string;
   name: string;
+  name_ar?: string;
   price: number;
   image: string;
   color: string;
+  color_ar?: string;
   size: string;
+  size_ar?: string;
   qty: number;
 }
 

@@ -1,8 +1,16 @@
 import { defineMiddleware } from 'astro:middleware';
 import { currentUser } from './lib/auth';
 
+type Lang = 'en' | 'ar';
+
 export const onRequest = defineMiddleware(async (context, next) => {
   const { pathname } = context.url;
+
+  // Storefront language from the cookie so SSR renders the right language
+  // on first paint (no English flash for Arabic shoppers).
+  const cookieLang = context.cookies.get('nevert-lang')?.value;
+  const lang: Lang = cookieLang === 'ar' ? 'ar' : 'en';
+  context.locals.lang = lang;
 
   const isAdminPage = pathname.startsWith('/admin');
   const isAdminApi = pathname.startsWith('/api/admin');

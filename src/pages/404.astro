@@ -7,8 +7,8 @@ import Footer from '../components/Footer.astro';
 <Base title="Page not found — NEVERT">
   <Header slot="header" />
   <section class="mx-auto max-w-2xl px-5 py-24 text-center sm:px-8">
-    <h1 class="font-display text-4xl text-espresso">This page is not here</h1>
-    <p class="mt-5 leading-relaxed text-stone">
+    <h1 data-i18n="notfound.title" class="font-display text-4xl text-espresso">This page is not here</h1>
+    <p data-i18n="notfound.body" class="mt-5 leading-relaxed text-stone">
       The link may be old, or the piece it pointed to has left the bench. The
       collections are always current.
     </p>
@@ -16,7 +16,7 @@ import Footer from '../components/Footer.astro';
       href="/collections"
       class="mt-8 inline-block bg-espresso px-8 py-3.5 text-sm tracking-[0.08em] text-porcelain transition-colors hover:bg-cognac"
     >
-      See the collections
+      <span data-i18n="notfound.cta">See the collections</span>
     </a>
   </section>
   <Footer slot="footer" />

@@ -1,31 +1,43 @@
 ---
 import Admin from '../../layouts/Admin.astro';
+import StatusPill from '../../components/admin/StatusPill.astro';
 import { orderCounts, listOrders, ordersReady } from '../../lib/admin-data';
 import { formatPrice } from '../../lib/types';
 import { orderMessage, waLink } from '../../lib/format';
-import {
-  formatDay,
-  orderStatusLabel,
-  ordersLabel,
-  piecesLabel,
-  shortStatusLabel,
-} from '../../lib/labels';
+import { formatDay, ordersLabel, piecesLabel } from '../../lib/labels';
 
 const [counts, orders] = await Promise.all([orderCounts(), listOrders()]);
 const latest = orders.slice(0, 6);
 const admin = Astro.locals.admin;
 const openCount = counts.new + counts.open;
+
+const stats = [
+  { label: 'طلبات جديدة', value: String(counts.new), hot: counts.new > 0 },
+  { label: 'تحت التواصل', value: String(counts.open), hot: false },
+  { label: 'تم التسليم', value: String(counts.delivered), hot: false },
+  { label: 'قيمة المُسلَّم', value: formatPrice(counts.revenue), hot: false },
+];
+
+const actions = [
+  { href: '/admin/products#new', title: '＋ إضافة منتج', sub: 'اسم عربي وإنجليزي وسعر بالجنيه' },
+  { href: '/admin/collections', title: 'المجموعات', sub: 'تعديل الأسماء والصور' },
+  { href: '/admin/orders?status=new', title: 'طلبات جديدة', sub: openCount === 0 ? 'لا يوجد ما ينتظر' : `${ordersLabel(openCount)} تحتاج ردًا` },
+];
 ---
 
 <Admin title="الطلبات — لوحة تحكم NEVERT" email={admin?.email} newOrders={counts.new}>
-  <h1 class="text-3xl text-espresso">اليوم في الورشة</h1>
-  <p class="mt-3 text-sm leading-relaxed text-stone">
-    افتح محادثة واتساب مع العميل، وبعدها انقل الطلب بين المراحل.
-  </p>
+  <div class="flex flex-wrap items-end justify-between gap-3">
+    <div>
+      <h1 class="text-3xl text-espresso">اليوم في الورشة</h1>
+      <p class="mt-2 text-sm leading-relaxed text-stone">
+        افتح محادثة واتساب مع العميل، وبعدها انقل الطلب بين المراحل.
+      </p>
+    </div>
+  </div>
 
   {
     !ordersReady() && (
-      <p class="mt-8 border border-cognac/40 bg-cognac/5 px-4 py-3 text-sm text-espresso">
+      <p class="admin-alert mt-6">
         قاعدة بيانات الطلبات غير متصلة. أضف PUBLIC_SUPABASE_URL و
         SUPABASE_SERVICE_ROLE_KEY، ونفّذ ملف supabase/schema.sql، ثم أعد تحميل
         الصفحة.
@@ -33,30 +45,29 @@ const openCount = counts.new + counts.open;
     )
   }
 
-  <dl class="mt-10 grid grid-cols-2 gap-6 sm:grid-cols-4">
-    <div class="border-t border-espresso/10 pt-4">
-      <dt class="text-sm text-stone">طلبات جديدة</dt>
-      <dd class="latin mt-1 text-3xl text-cognac">{counts.new}</dd>
-    </div>
-    <div class="border-t border-espresso/10 pt-4">
-      <dt class="text-sm text-stone">تحت التواصل</dt>
-      <dd class="latin mt-1 text-3xl text-espresso">{counts.open}</dd>
-    </div>
-    <div class="border-t border-espresso/10 pt-4">
-      <dt class="text-sm text-stone">تم التسليم</dt>
-      <dd class="latin mt-1 text-3xl text-espresso">{counts.delivered}</dd>
-    </div>
-    <div class="border-t border-espresso/10 pt-4">
-      <dt class="text-sm text-stone">قيمة المُسلَّم</dt>
-      <dd class="latin mt-1 text-3xl text-espresso">
-        {formatPrice(counts.revenue)}
-      </dd>
-    </div>
+  <dl class="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-4">
+    {stats.map((s) => (
+      <div class="admin-card !p-5">
+        <dt class="text-sm text-stone">{s.label}</dt>
+        <dd class={`latin mt-2 text-3xl tabular-nums ${s.hot ? 'text-cognac' : 'text-espresso'}`}>{s.value}</dd>
+      </div>
+    ))}
   </dl>
 
-  <section class="mt-14">
+  <section class="mt-8 grid gap-4 sm:grid-cols-3">
+    {actions.map((a) => (
+      <a href={a.href} class="admin-row">
+        <div>
+          <p class="text-espresso">{a.title}</p>
+          <p class="mt-1 text-xs text-stone">{a.sub}</p>
+        </div>
+      </a>
+    ))}
+  </section>
+
+  <section class="admin-card mt-8">
     <div class="flex flex-wrap items-baseline justify-between gap-3">
-      <h2 class="text-2xl text-espresso">أحدث الطلبات</h2>
+      <h2 class="admin-section-title">أحدث الطلبات</h2>
       <a
         href="/admin/orders"
         class="text-sm text-stone underline decoration-stone/30 underline-offset-4 hover:text-cognac"
@@ -67,15 +78,15 @@ const openCount = counts.new + counts.open;
 
     {
       latest.length === 0 ? (
-        <p class="mt-6 border-t border-espresso/10 pt-6 text-sm leading-relaxed text-stone">
+        <p class="mt-4 text-sm leading-relaxed text-stone">
           لا توجد طلبات بعد. عندما يرسل عميل طلبًا من صفحة السلة سيظهر هنا
           مباشرة.
         </p>
       ) : (
-        <ul class="mt-6 divide-y divide-espresso/10 border-y border-espresso/10">
+        <ul class="mt-4 divide-y divide-espresso/10 border-t border-espresso/10">
           {latest.map((o) => (
             <li class="flex flex-wrap items-center justify-between gap-4 py-4">
-              <div>
+              <div class="min-w-0">
                 <a
                   href={`/admin/orders/${o.id}`}
                   class="text-lg text-espresso hover:text-cognac"
@@ -83,19 +94,18 @@ const openCount = counts.new + counts.open;
                   #{o.id} — {o.customer_name}
                 </a>
                 <p class="mt-1 text-sm text-stone">
-                  {piecesLabel(o.items.length)} · {formatPrice(Number(o.total))} ·{' '}
+                  {piecesLabel(o.items.length)} ·{' '}
+                  <span class="latin">{formatPrice(Number(o.total))}</span> ·{' '}
                   {formatDay(o.created_at)}
                 </p>
               </div>
-              <div class="flex items-center gap-4">
-                <span class="text-sm text-cognac">
-                  {shortStatusLabel[o.status] ?? o.status}
-                </span>
+              <div class="flex items-center gap-3">
+                <StatusPill status={o.status} />
                 <a
                   href={waLink(o.whatsapp_number, orderMessage(o))}
                   target="_blank"
                   rel="noopener"
-                  class="border border-espresso/20 px-4 py-2 text-sm text-espresso transition-colors hover:border-cognac hover:text-cognac"
+                  class="admin-btn-ghost !px-4 !py-2 text-xs"
                 >
                   واتساب
                 </a>
@@ -106,10 +116,4 @@ const openCount = counts.new + counts.open;
       )
     }
   </section>
-
-  <p class="mt-10 text-sm text-stone">
-    {openCount === 0
-      ? 'لا يوجد طلب ينتظر ردًا الآن.'
-      : `يوجد ${ordersLabel(openCount)} تحتاج ردًا.`}
-  </p>
 </Admin>
