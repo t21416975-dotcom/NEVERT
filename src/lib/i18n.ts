@@ -34,6 +34,7 @@ export const dict: Record<string, { en: string; ar: string }> = {
   'hero.cta1': { en: 'See the collections', ar: 'شاهد المجموعات' },
   'hero.cta2': { en: 'How they are made', ar: 'كيف تُصنع' },
   'hero.scroll': { en: 'Scroll', ar: 'مرّر' },
+  'hero.slide': { en: 'Show slide {count}', ar: 'عرض الشريحة {count}' },
   // home sections
   'home.collections': { en: 'Collections', ar: 'المجموعات' },
   'home.featured': { en: 'From the bench this month', ar: 'من العارضة هذا الشهر' },
@@ -282,13 +283,16 @@ export function applyLang(lang: Lang): void {
   });
 
   // 2. Attributes: data-i18n-attr="placeholder:cart.name;aria-label:cart.name"
+  // Supports {count} interpolation from data-count, like [data-i18n].
   document.querySelectorAll<HTMLElement>('[data-i18n-attr]').forEach((el) => {
     const spec = el.getAttribute('data-i18n-attr');
     if (!spec) return;
+    const countAttr = el.getAttribute('data-count');
+    const vars = countAttr !== null ? { count: countAttr } : undefined;
     for (const part of spec.split(';')) {
       const [attr, key] = part.split(':').map((s) => s.trim());
       if (!attr || !key || !dict[key]) continue;
-      el.setAttribute(attr, t(key, lang));
+      el.setAttribute(attr, t(key, lang, vars));
     }
   });
 

@@ -1,0 +1,165 @@
+---
+/**
+ * Homepage hero slideshow: crossfading full-screen images with manual
+ * arrows + dots and gentle auto-rotation (pauses on hover/focus/hidden
+ * tab, disabled for prefers-reduced-motion).
+ */
+interface Slide {
+  src: string;
+  altEn: string;
+  altAr: string;
+}
+
+interface Props {
+  slides: Slide[];
+  intervalMs?: number;
+}
+
+const { slides, intervalMs = 6000 } = Astro.props;
+---
+
+<div data-hero-slideshow data-interval={intervalMs} class="absolute inset-0">
+  {slides.map((s, i) => (
+    <img
+      src={s.src}
+      alt={i === 0 ? s.altEn : ''}
+      data-hero-slide={i}
+      data-en={s.altEn}
+      data-ar={s.altAr || s.altEn}
+      data-en-attr="alt"
+      data-ar-alt={s.altAr || s.altEn}
+      width="1600"
+      height="1100"
+      fetchpriority={i === 0 ? 'high' : undefined}
+      loading={i === 0 ? 'eager' : 'lazy'}
+      draggable="false"
+      aria-hidden={i === 0 ? undefined : 'true'}
+      class="absolute inset-0 h-full w-full object-cover transition-opacity duration-1000 ease-out motion-reduce:transition-none"
+    />
+  ))}
+
+  {slides.length > 1 && (
+    <>
+      <button
+        type="button"
+        data-hero-prev
+        data-i18n-attr="aria-label:gallery.prev"
+        aria-label="Previous image"
+        class="absolute start-4 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-porcelain/15 text-porcelain backdrop-blur transition-colors hover:bg-porcelain/30 sm:start-8"
+      >
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="rtl:-scale-x-100">
+          <path d="m15 6-6 6 6 6" />
+        </svg>
+      </button>
+      <button
+        type="button"
+        data-hero-next
+        data-i18n-attr="aria-label:gallery.next"
+        aria-label="Next image"
+        class="absolute end-4 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-porcelain/15 text-porcelain backdrop-blur transition-colors hover:bg-porcelain/30 sm:end-8"
+      >
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="rtl:-scale-x-100">
+          <path d="m9 6 6 6-6 6" />
+        </svg>
+      </button>
+      <div class="absolute bottom-16 start-1/2 z-10 flex -translate-x-1/2 gap-2 rtl:translate-x-1/2" role="tablist" aria-label="Hero slides">
+        {slides.map((_, i) => (
+          <button
+            type="button"
+            role="tab"
+            data-hero-dot={i}
+            data-count={i + 1}
+            data-i18n-attr="aria-label:hero.slide"
+            aria-label={`Show slide ${i + 1}`}
+            aria-selected={i === 0 ? 'true' : 'false'}
+            class="h-1.5 rounded-full bg-porcelain/40 transition-all duration-500 hover:bg-porcelain/80"
+          ></button>
+        ))}
+      </div>
+    </>
+  )}
+</div>
+
+<script>
+  document.querySelectorAll('[data-hero-slideshow]').forEach((root) => {
+    const slides = [...root.querySelectorAll<HTMLImageElement>('[data-hero-slide]')];
+    const dots = [...root.querySelectorAll<HTMLButtonElement>('[data-hero-dot]')];
+    const total = slides.length;
+    if (total < 2) return;
+    const intervalMs = Number(root.getAttribute('data-interval') ?? '6000');
+    let index = 0;
+    let timer: number | null = null;
+
+    const reduceMotion =
+      window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+
+    function render() {
+      slides.forEach((img, i) => {
+        const active = i === index;
+        img.classList.toggle('opacity-0', !active);
+        img.toggleAttribute('aria-hidden', !active);
+        // Only the visible slide keeps its alt (screen readers stay quiet).
+        if (!active) img.removeAttribute('alt');
+      });
+      dots.forEach((d, i) => {
+        const active = i === index;
+        d.setAttribute('aria-selected', active ? 'true' : 'false');
+        d.classList.toggle('w-7', active);
+        d.classList.toggle('bg-porcelain', active);
+        d.classList.toggle('w-2.5', !active);
+      });
+    }
+
+    function stop() {
+      if (timer !== null) {
+        window.clearInterval(timer);
+        timer = null;
+      }
+    }
+    function start() {
+      if (reduceMotion || document.hidden) return;
+      stop();
+      timer = window.setInterval(() => {
+        index = (index + 1) % total;
+        render();
+      }, intervalMs);
+    }
+    const go = (i: number) => {
+      index = (i + total) % total;
+      render();
+      start(); // manual navigation restarts the idle timer
+    };
+
+    root.querySelector('[data-hero-next]')?.addEventListener('click', () => go(index + 1));
+    root.querySelector('[data-hero-prev]')?.addEventListener('click', () => go(index - 1));
+    dots.forEach((d, i) => d.addEventListener('click', () => go(i)));
+
+    // Pause while the visitor reads/interacts or the tab is hidden.
+    const hero = root.closest('section');
+    hero?.addEventListener('mouseenter', stop);
+    hero?.addEventListener('mouseleave', start);
+    hero?.addEventListener('focusin', stop);
+    hero?.addEventListener('focusout', start);
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) stop();
+      else start();
+    });
+
+    // Initial dot widths (SSR renders neutral dots).
+    dots.forEach((d, i) => {
+      d.classList.toggle('w-7', i === 0);
+      d.classList.toggle('bg-porcelain', i === 0);
+      d.classList.toggle('w-2.5', i !== 0);
+    });
+    start();
+  });
+</script>
+
+<style>
+  [data-hero-slide] {
+    opacity: 0;
+  }
+  [data-hero-slide]:first-child {
+    opacity: 1;
+  }
+</style>
