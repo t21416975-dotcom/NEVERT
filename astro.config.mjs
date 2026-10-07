@@ -9,4 +9,6 @@ export default defineConfig({
   integrations: [tailwind(), react()],
   adapter: vercel(),
   output: 'server',
+  // Smaller HTML over the wire; no visual effect.
+  compressHTML: true,
 });

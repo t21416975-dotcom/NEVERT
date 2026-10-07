@@ -40,6 +40,22 @@ const htmlDir: 'ltr' | 'rtl' = dirProp ?? (htmlLang === 'ar' ? 'rtl' : 'ltr');
     </script>
     <meta name="description" content={description} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <!-- Self-hosted fonts: preload only the active language's
+         above-the-fold weights so text never waits on a font request. -->
+    {htmlLang === 'ar' ? (
+      <>
+        <link rel="preload" href="/fonts/plex-300.woff2" as="font" type="font/woff2" crossorigin />
+        <link rel="preload" href="/fonts/amiri-400.woff2" as="font" type="font/woff2" crossorigin />
+      </>
+    ) : (
+      <>
+        <link rel="preload" href="/fonts/jost-300.woff2" as="font" type="font/woff2" crossorigin />
+        <link rel="preload" href="/fonts/cormorant-400.woff2" as="font" type="font/woff2" crossorigin />
+      </>
+    )}
+    <!-- Demo/seed imagery host. -->
+    <link rel="preconnect" href="https://picsum.photos" />
+    <link rel="dns-prefetch" href="https://picsum.photos" />
     <title>{title}</title>
   </head>
   <body class="min-h-screen flex flex-col">
