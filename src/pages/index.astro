@@ -18,6 +18,19 @@ const heroSlides = (featured.length > 0 ? featured : products.slice(0, 4)).map((
   altEn: `${p.name} — handcrafted leather bag`,
   altAr: `${p.name_ar || p.name} — حقيبة جلد يدوية`,
 }));
+// Demo lifestyle slides: workshop atmosphere until real photography lands.
+heroSlides.push(
+  {
+    src: 'https://picsum.photos/seed/nevert-craft/1600/1100',
+    altEn: 'Leather craftsmanship in the NEVERT workshop',
+    altAr: 'حرفة الجلود في مشغل NEVERT',
+  },
+  {
+    src: 'https://picsum.photos/seed/nevert-detail/1600/1100',
+    altEn: 'Hand-stitched leather detail',
+    altAr: 'تفاصيل جلد مخيط يدوياً',
+  },
+);
 ---
 
 <Base title="NEVERT — Handcrafted bags, made one at a time">

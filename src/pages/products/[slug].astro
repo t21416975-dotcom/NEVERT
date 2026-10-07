@@ -6,6 +6,7 @@ import ProductCard from '../../components/ProductCard.astro';
 import ProductGallery from '../../components/ProductGallery.astro';
 import ProductActions from '../../components/ProductActions.tsx';
 import { getProductBySlug, getCollectionBySlug, listProducts } from '../../lib/store';
+import { formatPrice } from '../../lib/types';
 import { getCollection } from '../../data/catalog';
 
 const { slug } = Astro.params;

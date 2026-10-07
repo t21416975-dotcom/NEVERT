@@ -6,7 +6,7 @@ const COOKIE_KEY = 'nevert-lang';
 export const dict: Record<string, { en: string; ar: string }> = {
   // nav + header
   'nav.collections': { en: 'Collections', ar: 'المجموعات' },
-  'nav.atelier': { en: 'The atelier', ar: 'المشغل' },
+  'nav.about': { en: 'About us', ar: 'من نحن' },
   'nav.contact': { en: 'Contact', ar: 'تواصل' },
   // cart badge
   'bag.label': { en: 'Bag', ar: 'الحقيبة' },
